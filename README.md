@@ -1,6 +1,6 @@
 # CPS 845 Lab · Fall 2026
 
-## 👉 Open the lab website: **[https://sirivellaanjani.github.io/CPS845-lab/](https://sirivellaanjani.github.io/CPS845-lab/)**
+## 👉 Open the lab website: **[https://cps845lab.github.io/](https://cps845lab.github.io/)**
 
 It works on your phone and your laptop. Each tab is its own page:
 
