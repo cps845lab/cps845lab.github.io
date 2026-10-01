@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lab 3 · How do LLMs tell homonyms apart?</title>
+<meta name="description" content="CPS 845 Lab 3: an animated walkthrough of how attention lets the words before “ring” change its meaning.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem('cps845-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<style>
+/* =====================================================================
+   COLOURS: same TMU palette as the main lab site (index.html).
+   --no / --mid / --yes are the "no → yes" colours used in the pictures.
+   --k / --m / --w are only for king / man / woman in the 3D walk.
+   ===================================================================== */
+:root{
+  --bg:#FFFFFF; --surface:#F5F7FA; --text:#1A1A1A; --muted:#555D66; --link:#004C9B;
+  --nav-bg:#002D72; --nav-text:#FFFFFF; --nav-active:#5BC2F4; --line:#C9CED6; --grid:#E4E8EE; --focus:#004C9B;
+  --no:#C2410C; --mid:#7C3AED; --yes:#1D4ED8; --hl:#B8002A;
+  --k:#0F766E; --m:#BE185D; --w:#4D7C0F; /* king / man / woman in the 3D walk (not the yes/no colours) */
+  --grey:#9AA3AD; /* greyed-out arrows (slide “queen’s own arrow”) and the faded tail of the wind streaks */
+  --trail-past:#3E454D; --trail-next:#6F7780; /* section trail at the top: parts already seen / still to come */
+  --other:#A16207; /* slide “winds of meaning”: other meanings of queen (music, performance, slang, insects) */
+  /* Vector intuition (deck 1, session 4): the tower and the pig, the sled */
+  --brick:#EE9E84; --brick-side:#D5704F; --brick-joint:#B4543A; /* the brick tower */
+  --grass:#C5E3A5; --grass-line:#9CC57A; --grass-edge:#5E8E3E; /* the grassy ground */
+  --sun:#FCD34D; --pig:#C4577B; /* the sun; the pig's arrow */
+  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; /* the pig */
+  --ice:#E1F1FA; --glint:#FFFFFF; /* the sled: frozen lake and its shine lines */
+}
+:root[data-theme="dark"]{
+  --bg:#0D1520; --surface:#152131; --text:#EDF1F5; --muted:#B3BCC7; --link:#8CCBF5;
+  --nav-bg:#07101B; --nav-text:#EDF1F5; --line:#3A4B61; --grid:#1E2D40; --focus:#5BC2F4;
+  --no:#FB923C; --mid:#C4B5FD; --yes:#93C5FD; --hl:#FF8FA3; --k:#5EEAD4; --m:#F9A8D4; --w:#BEF264; --grey:#6B7A8C; --trail-past:#C9D1DA; --trail-next:#8E99A6; --other:#FDE047;
+  --brick:#9C4A36; --brick-side:#7A3726; --brick-joint:#C9705A; --grass:#27432A; --grass-line:#3C6340; --grass-edge:#6FA35A; --sun:#FCD34D; --pig:#F9A8D4;
+  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; --ice:#13304A; --glint:#3B6488;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1520; --surface:#152131; --text:#EDF1F5; --muted:#B3BCC7; --link:#8CCBF5;
+    --nav-bg:#07101B; --nav-text:#EDF1F5; --line:#3A4B61; --grid:#1E2D40; --focus:#5BC2F4;
+    --no:#FB923C; --mid:#C4B5FD; --yes:#93C5FD; --hl:#FF8FA3; --k:#5EEAD4; --m:#F9A8D4; --w:#BEF264; --grey:#6B7A8C; --trail-past:#C9D1DA; --trail-next:#8E99A6; --other:#FDE047;
+  --brick:#9C4A36; --brick-side:#7A3726; --brick-joint:#C9705A; --grass:#27432A; --grass-line:#3C6340; --grass-edge:#6FA35A; --sun:#FCD34D; --pig:#F9A8D4;
+  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; --ice:#13304A; --glint:#3B6488;
+  }
+}
+/* ======================= end of colours ============================== */
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;
+  font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.4}
+button,a{font:inherit}
+a:focus-visible,button:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
+
+.bar{background:var(--nav-bg);color:var(--nav-text)}
+.bar-in{display:flex;align-items:center;gap:1rem;padding:.45rem 1.25rem;max-width:1600px;margin:0 auto}
+.bar a{color:var(--nav-text);text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:.3rem;min-height:44px}
+.bar .ttl{flex:1;min-width:0;font-size:.95rem;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon-btn{flex:none;width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:transparent;color:var(--nav-text);cursor:pointer;display:grid;place-items:center}
+.ic{width:22px;height:22px}
+
+.cap{width:100%;max-width:1600px;margin:0 auto;padding:.8rem 2rem .2rem;min-height:7.6rem;text-align:center}
+/* section trail (breadcrumb style): parts seen = dark grey, current = blue + underlined, still to come = lighter grey */
+.cap .k{margin:0 0 1rem;font-size:.95rem;color:var(--trail-next)}
+.cap .k span{white-space:nowrap}
+.cap .k .past{color:var(--trail-past)}
+.cap .k .now{color:var(--link);font-weight:700}
+.cap .k .sep{color:var(--line);margin:0 .3em}
+.cap .t{margin:0 auto;font-size:clamp(1.3rem,2.6vw,2.25rem);line-height:1.25;font-weight:700;max-width:62ch}
+.cap .t small{display:block;font-size:.62em;font-weight:400;color:var(--muted);margin-top:.25rem}
+.cap.fade{animation:fade .35s ease-out}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+
+.stage{flex:1;min-height:0;display:flex;justify-content:center;align-items:center;padding:0 1rem}
+#svg{width:100%;height:100%;max-width:1600px;display:block}
+
+/* nav row: Back pinned left, Next pinned right, dots + counter centred; same width and place in both decks, on every slide */
+.ctl{display:grid;grid-template-columns:15.5rem minmax(0,1fr) 15.5rem;align-items:center;gap:.4rem .8rem;width:100%;max-width:1280px;margin:0 auto;padding:.5rem 1rem .9rem}
+.ctl .mid{display:flex;align-items:center;justify-content:center;gap:.8rem;min-width:0}
+.btn{min-height:48px;padding:.5rem 1.2rem;border-radius:10px;border:1.5px solid var(--link);background:transparent;color:var(--link);font-weight:700;cursor:pointer}
+.btn.primary{background:var(--link);color:var(--bg)}
+.btn:disabled{opacity:.35;cursor:default}
+.ctl>.btn{width:100%;white-space:nowrap}
+.dots{display:flex;gap:4px;align-items:center}
+.dots button{flex:none;width:12px;height:12px;padding:0;border-radius:50%;border:2px solid var(--line);background:transparent;cursor:pointer}
+.dots button.sec{width:18px;height:18px}   /* first slide of each trail part (session 4, U22a) */
+.dots button[aria-current="step"]{background:var(--link);border-color:var(--link)}
+.dots button.seen{border-color:var(--link)}
+.count{color:var(--muted);font-size:.9rem;min-width:4.5rem;text-align:center}
+.keys{color:var(--muted);font-size:.8rem;grid-column:1/-1;text-align:center;margin:-.2rem 0 0}
+@media (max-width:1300px){.dots{gap:3px}.dots button{width:8px;height:8px}.dots button.sec{width:12px;height:12px}}   /* many dots (deck 1): smaller */
+@media (max-width:1060px){.dots{display:none}}
+@media (max-width:700px){.dots{display:none}.cap{padding:.8rem 1rem .2rem}.keys{display:none}
+  .ctl{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.ctl>.btn{padding:.5rem .4rem;font-size:.9rem}.ctl .lt{display:none}}   /* phones: equal halves, short labels */
+
+/* ---- SVG styles (colours come from the variables above) ---- */
+svg text{font-family:"Atkinson Hyperlegible",system-ui,Arial,sans-serif;fill:var(--text)}
+.ink{fill:var(--text)} .mut{fill:var(--muted)} .f-no{fill:var(--no)} .f-mid{fill:var(--mid)} .f-yes{fill:var(--yes)} .f-link{fill:var(--link)} .f-bg{fill:var(--bg)} .f-surf{fill:var(--surface)} .f-hl{fill:var(--hl)}
+.s-ink{stroke:var(--text)} .s-mut{stroke:var(--muted)} .s-line{stroke:var(--line)} .s-grid{stroke:var(--grid)}
+.f-k{fill:var(--k)} .f-m{fill:var(--m)} .f-w{fill:var(--w)} .s-k{stroke:var(--k)} .s-m{stroke:var(--m)} .s-w{stroke:var(--w)} .s-bg{stroke:var(--bg)}
+svg text.f-k{fill:var(--k)} svg text.f-m{fill:var(--m)} svg text.f-w{fill:var(--w)}
+.s-no{stroke:var(--no)} .s-mid{stroke:var(--mid)} .s-yes{stroke:var(--yes)} .s-link{stroke:var(--link)} .s-hl{stroke:var(--hl)}
+svg text.f-no{fill:var(--no)} svg text.f-mid{fill:var(--mid)} svg text.f-yes{fill:var(--yes)} svg text.mut{fill:var(--muted)} svg text.f-link{fill:var(--link)} svg text.f-hl{fill:var(--hl)}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace!important}
+.b{font-weight:700}
+.f-grey{fill:var(--grey)} svg text.f-other{fill:var(--other)}
+.s-grey{stroke:var(--grey)}
+.drag{cursor:grab;touch-action:none} .drag:active{cursor:grabbing}
+svg.turn{cursor:grab} svg.turn.turning{cursor:grabbing}   /* slide 21: drag to turn the 3D space */
+/* slide “queen’s own arrow”: every arrow of the walk turns grey */
+.grey .s-k,.grey .s-m,.grey .s-w{stroke:var(--grey)!important}
+.grey .f-k,.grey .f-m,.grey .f-w,.grey .f-link,.grey .ink,.grey .mut,svg text.grey tspan{fill:var(--grey)!important}
+.fadeable line,.fadeable path,.fadeable text,.fadeable tspan{transition:stroke .5s,fill .5s}
+/* replay button inside the picture */
+.rbtn{cursor:pointer} .rbtn:focus{outline:none} .rbtn:focus-visible rect{stroke-width:4}
+.meme{cursor:zoom-in}
+/* click / tap a meme: half-screen view, click anywhere (or any key) to close */
+.lb{position:fixed;inset:0;z-index:10;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.lb[hidden]{display:none}
+.lb figure{margin:0;text-align:center}
+.lb img{width:50vw;max-height:78vh;object-fit:contain;border-radius:8px;background:#fff}
+.lb figcaption{color:#fff;margin-top:.6rem;font-weight:700}
+@media (max-width:700px){.lb img{width:92vw}}
+/* ---- deck 2 only (added by build2.py) ---- */
+.s-ghost{stroke:var(--line)} .f-ghost{fill:var(--line)}   /* grey “ghost” of an earlier walk */
+/* “?” help next to Step / Auto: a small non-modal popover (toggletip) */
+.pop{position:fixed;z-index:20;width:min(400px,92vw);background:var(--bg);color:var(--text);border:1.5px solid var(--line);border-radius:12px;
+  box-shadow:0 8px 28px rgba(0,0,0,.22);padding:.9rem 1.1rem 1rem;animation:fade .2s ease-out;font-size:1rem;line-height:1.45}
+.pop[hidden]{display:none}
+.pop::before{content:"";position:absolute;top:-9px;left:var(--ax,50%);width:16px;height:16px;margin-left:-8px;background:var(--bg);
+  border-left:1.5px solid var(--line);border-top:1.5px solid var(--line);transform:rotate(45deg)}
+.pop h2{font-size:1.15rem;margin:0 2.2rem .4rem 0}
+.pop h3{font-size:1rem;margin:.7rem 0 .2rem;color:var(--link)}
+.pop ul{margin:0;padding-left:1.1rem} .pop li{margin:.2rem 0}
+.pop kbd{font:inherit;font-size:.9em;border:1px solid var(--line);border-radius:4px;padding:0 .3em}
+.pop .pop-close{margin:.7rem 0 0;color:var(--muted);font-size:.9rem}
+.pop-x{position:absolute;top:.35rem;right:.4rem;width:44px;height:44px;border:0;background:transparent;color:var(--muted);font-size:1.7rem;line-height:1;cursor:pointer;border-radius:8px}
+@media (prefers-reduced-motion: reduce){.pop{animation-duration:.15s}}
+.rbtn:focus-visible circle:not([opacity]){stroke:var(--focus);stroke-width:3}   /* keyboard focus on the step track */
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <a href="../index.html#teach"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg><span>Lab site</span></a>
+  <span class="ttl">2 · How do LLMs tell homonyms apart?</span>
+  <button class="icon-btn" id="fsBtn" type="button" aria-label="Full screen (F)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch theme"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+</div></header>
+
+<div class="cap" id="cap" aria-live="polite"><p class="k" id="capK"></p><p class="t" id="capT"></p></div>
+
+<div class="stage"><svg id="svg" viewBox="0 0 1600 900" role="img" aria-labelledby="capT">
+<defs>
+  <linearGradient id="gNoYes" gradientUnits="userSpaceOnUse" x1="250" y1="0" x2="1350" y2="0">
+    <stop offset="0" style="stop-color:var(--no)"/><stop offset=".5" style="stop-color:var(--mid)"/><stop offset="1" style="stop-color:var(--yes)"/>
+  </linearGradient>
+  <radialGradient id="beam" cx="0" cy="0" r="230" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#1a73e8" stop-opacity="0.75"/><stop offset="1" stop-color="#1a73e8" stop-opacity="0"/></radialGradient>
+  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/></filter>
+  <clipPath id="mapClip"><rect width="820" height="660" rx="28"/></clipPath>
+</defs>
+<g id="root"></g>
+</svg></div>
+
+<div class="lb" id="lb" hidden tabindex="-1" role="dialog" aria-modal="true" aria-label="Enlarged picture"><figure><img id="lbImg" alt=""><figcaption><span id="lbName"></span> · click anywhere to close</figcaption></figure></div>
+
+<nav class="ctl" aria-label="Steps">
+  <button class="btn" id="prev" type="button">← Back</button>
+  <div class="mid"><div class="dots" id="dots"></div><span class="count" id="count"></span></div>
+  <button class="btn primary" id="next" type="button">Next →</button>
+  <p class="keys">Keys: → or Space = next · ← = back · F = full screen</p>
+</nav>
+
+<script>
+/* Deck 2 · How do LLMs tell homonyms apart?  (built by build2.py: head.part + script2.part + tail.part)
+   Session 10: slide 2 underline + words one after the other · slides 5–8 follow 3Blue1Brown’s explanation of
+   attention: “ring” has ONE initial embedding (same spot in every sentence); attention adds one change to it, built from
+   the words it listens to = the refined embedding. Session 11: slides 5–8 all play by themselves (+ ↻ Replay); slides 9–11 = how attention picks its words (scores → shares → learned by practice); slide 12 = summary;
+   Back / Next change SLIDES only. */
+(function(){
+var NS='http://www.w3.org/2000/svg';
+var root=document.getElementById('root');
+function el(tag,attrs,parent){var e=document.createElementNS(NS,tag); if(attrs) for(var k in attrs) e.setAttribute(k,attrs[k]); (parent||root).appendChild(e); return e;}
+function txt(s,attrs,parent){var e=el('text',attrs,parent); e.textContent=s; return e;}
+function clamp(v){return v<0?0:v>1?1:v}
+function ease(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
+function R(P,a,b){return ease(clamp((P-a)/(b-a)))}
+function lerp(a,b,t){return a+(b-a)*t}
+function op(e,v){e.style.opacity=v<0.001?0:v; e.style.visibility=v<0.001?'hidden':'visible'; e.style.pointerEvents=v<0.001?'none':'';}
+function set(e,a){for(var k in a) e.setAttribute(k,a[k]);}
+
+/* arrow = line + triangle head, drawn from (x1,y1) toward (x2,y2); t = how much is drawn */
+function mkArrow(cls,parent,w){
+  var g=el('g',{},parent);
+  var l=el('line',{'class':cls.s,'stroke-width':w||4,'stroke-linecap':'round'},g);
+  var h=el('path',{'class':cls.f},g);
+  return {g:g,l:l,h:h,w:w||4};
+}
+function drawArrow(a,x1,y1,x2,y2,t){
+  var ex=lerp(x1,x2,t), ey=lerp(y1,y2,t), dx=ex-x1, dy=ey-y1, L=Math.hypot(dx,dy);
+  if(L<2){op(a.g,0);return;}
+  a.g.style.visibility='visible'; a.g.style.opacity=1;
+  var ux=dx/L, uy=dy/L, hl=Math.min(22+a.w, L*.6), hw=hl*.45;
+  set(a.l,{x1:x1,y1:y1,x2:ex-ux*hl*.8,y2:ey-uy*hl*.8});
+  var bx=ex-ux*hl, by=ey-uy*hl;
+  set(a.h,{d:'M'+ex+' '+ey+'L'+(bx-uy*hw)+' '+(by+ux*hw)+'L'+(bx+uy*hw)+' '+(by-ux*hw)+'Z'});
+}
+var C={no:{s:'s-no',f:'f-no'},mid:{s:'s-mid',f:'f-mid'},yes:{s:'s-yes',f:'f-yes'},mut:{s:'s-mut',f:'mut'},k:{s:'s-k',f:'f-k'},ghost:{s:'s-ghost',f:'f-ghost'}};
+
+/* ------------------------------------------------------------------ */
+/* SCENES (one click each). sec = part in the trail at the top.        */
+/* auto = seconds the slide plays by itself (+ ↻ Replay) · parts = slides 6 / 7 play 3 parts one after another */
+/* ------------------------------------------------------------------ */
+var SECS=['Question','Vectors without attention','Two sentences','Ring without attention','Engaged with attention','Phone with attention','Both with attention','Attention scores','Summary'];
+var PREV_DECK='1-embedding.html#end';   /* Back on slide 1 (and ←) goes to the last slide of deck 1 */
+var SC=[
+ {id:'title',sec:-1,t:'',d:0},
+ {id:'q',  sec:0, t:'“Ring” is a homonym', s:'On its own, you can’t tell which meaning', d:3.0},
+ {id:'b',  sec:1, t:'Vectors alone can’t do it', s:'Attention lets the context change the vector', d:1.4},
+ {id:'s',  sec:2, t:'Two sentences, one “ring”', s:'Only the first sentence changes', d:1.4},
+ {id:'w1', sec:3, t:'“Ring” without attention', s:'Initial embedding: its starting vector, the same in every sentence (aka static embedding)', d:1.2, auto:1.2},
+ {id:'a1', sec:4, t:'“Ring” with attention: engaged', s:'Refined embedding: a new vector for this sentence (aka contextual embedding)', d:1.0, auto:4.8, parts:3},
+ {id:'a2', sec:5, t:'“Ring” with attention: phone', s:'A different sentence adds a different change', d:1.0, auto:4.8, parts:3},
+ {id:'cmp',sec:6, t:'“Ring” with attention: both sentences', s:'Each meaning of “ring” is a different direction in the space', d:1.0, auto:2.1},
+ {id:'sc', sec:7, t:'How does “ring” know where to look?', s:'It scores each word before it: how much does this word help settle my meaning?', d:1.0, auto:3.0},
+ {id:'sh', sec:7, t:'Scores become shares of attention', s:'The shares add up to 100%: the more one word gets, the less is left for the others', d:1.0, auto:4.4},
+ {id:'pr', sec:7, t:'Where the scores come from: practice', s:'The model learned them by guessing the next word in billions of sentences', d:1.0, auto:4.8},
+ {id:'sum',sec:8, t:'What You Learned', d:2.2}
+];
+var N=SC.length, S={};
+SC.forEach(function(s,i){S[s.id]=i+1;});           /* S.xx = on-screen slide number (1…N) */
+var DUR=SC.map(function(s){return s.d;});
+function IN(P,n,u0,u1){return R(P,n-2+u0,n-2+u1);}   /* ramps 0→1 during the move INTO slide n */
+function stepsOf(i){return SC[i]&&SC[i].parts||0;}   /* slides 6 / 7: 3 parts (bars · + context · new “ring”) */
+function autoOf(i){return SC[i]&&SC[i].auto||0;}
+
+/* ------------------------------------------------------------------ */
+/* 1. Title                                                            */
+/* ------------------------------------------------------------------ */
+var gTitle=el('g');
+txt('How do LLMs tell homonyms apart?',{x:800,y:390,'text-anchor':'middle','font-size':72,'class':'ink b'},gTitle);
+txt('aka: How does attention work?',{x:800,y:480,'text-anchor':'middle','font-size':52,'class':'f-link b'},gTitle);
+txt('Press → or Space to start',{x:800,y:700,'text-anchor':'middle','font-size':24,'class':'mut'},gTitle);
+
+/* 2. The example: a line draws under “ring”, then “jewellery?”, then “a phone sound?” (plays by itself) */
+var gQ=el('g');
+var qSent=txt('“I love the ring.”',{x:800,y:400,'text-anchor':'middle','font-size':64,'class':'ink b'},gQ);
+var qLine=el('line',{'class':'s-k','stroke-width':7,'stroke-linecap':'round'},gQ), qL={x1:0,x2:0,y:0};
+var qJ=txt('jewellery?',{x:560,y:530,'text-anchor':'middle','font-size':44,'class':'f-no b'},gQ);
+var qP=txt('a phone sound?',{x:1040,y:530,'text-anchor':'middle','font-size':44,'class':'f-yes b'},gQ);
+function layoutQ(){ try{ var s=qSent.textContent.indexOf('ring'), a=qSent.getStartPositionOfChar(s), e=qSent.getEndPositionOfChar(s+3); qL={x1:a.x,x2:e.x,y:a.y+24}; }catch(_){ qL={x1:880,x2:990,y:424}; } }
+
+/* 3. Bullets (all on one click; bold = the two key lines) */
+var gB=el('g');
+[['One word, one starting vector, the same everywhere.',0],
+ ['So that vector is a blurry average of all its meanings.',0],
+ ['Attention fixes this: each word’s vector is updated by the words before it.',1],
+ ['“engaged” nearby pulls “ring” toward jewellery; “phone” pulls it toward sound.',0],
+ ['The result: a new vector for each sentence.',0],
+ ['Vectors hold meaning; attention lets context change it.',1]].forEach(function(b,i){
+  var y=125+i*105;
+  el('circle',{cx:190,cy:y-11,r:9,'class':'f-link'},gB);
+  txt(b[0],{x:220,y:y,'font-size':32,'class':'ink'+(b[1]?' b':'')},gB);
+});
+
+/* 4. The two sentences, side by side (the same second line sits on the same row) */
+var gS=el('g');
+txt('She just got engaged.',{x:430,y:250,'text-anchor':'middle','font-size':44,'class':'f-no b'},gS);
+txt('I love the ring.',{x:430,y:315,'text-anchor':'middle','font-size':44,'class':'ink b'},gS);
+el('line',{x1:800,y1:190,x2:800,y2:360,'class':'s-line','stroke-width':2},gS);
+txt('She just got a new phone.',{x:1170,y:250,'text-anchor':'middle','font-size':44,'class':'f-yes b'},gS);
+txt('I love the ring.',{x:1170,y:315,'text-anchor':'middle','font-size':44,'class':'ink b'},gS);
+txt('Same second sentence. Only the first sentence changes.',{x:800,y:480,'text-anchor':'middle','font-size':30,'class':'mut'},gS);
+txt('Does “ring” mean the same thing in both?',{x:800,y:528,'text-anchor':'middle','font-size':30,'class':'ink b'},gS);
+
+/* ------------------------------------------------------------------ */
+/* 3D space: x = sound (right), y = jewellery (up), z = feeling (back)  */
+/* The numbers are made up for the picture (like the king/queen walk). */
+/* How attention works (3Blue1Brown, “Attention in transformers”):      */
+/*  every word starts with ONE fixed vector, the same in every sentence;  */
+/*  attention adds ONE change to it, built from the words it listens to. */
+/* ------------------------------------------------------------------ */
+var RING=[.50,.60,.20];   /* “ring” alone: the same vector in every sentence, between the jewellery and the sound words */
+var REF=[{w:'diamond',v:[.10,1.05,.30],c:'no'},{w:'wedding',v:[.45,.98,.92],c:'no'},
+         {w:'beep',v:[1.10,.55,.42],c:'yes'},{w:'call',v:[1.20,.20,.20],c:'yes'}];
+var KEYC={'engaged.':'no','phone.':'yes','ring.':'k','love':'mid'};   /* coloured words; every other word is grey */
+/* W = attention: how much “ring” listens to each word (adds up to 1). NEW = where “ring” ends up after attention */
+var SENT=[
+ {words:['She','just','got','engaged.','I','love','the','ring.'], att:S.a1, col:'no', tag:'engaged', NEW:[.40,.90,.82],
+  W:{'She':.04,'just':.02,'got':.03,'engaged.':.50,'I':.03,'love':.18,'the':.02,'ring.':.18}},
+ {words:['She','just','got','a','new','phone.','I','love','the','ring.'], att:S.a2, col:'yes', tag:'phone', NEW:[1.02,.47,.36],
+  W:{'She':.04,'just':.02,'got':.03,'a':.01,'new':.06,'phone.':.45,'I':.03,'love':.12,'the':.02,'ring.':.22}}
+];
+var OX=220, OY=760, SW=490, SH=380, DZ=280, CA=Math.cos(-.44), SA=Math.sin(-.44);   /* kept clear of the hint + buttons (bottom right, same spots as deck 1) */
+var view={yaw:0,pitch:0}, vAnim=null, vTouched=false, PX=.65*SW, PZ=.6*DZ;
+function turnSlide(c){return c>=S.w1-1 && c<=S.cmp-1;}   /* the walk slides can be turned */
+function Praw(v){
+  var X=v[0]*SW, Y=v[1]*SH, Z=v[2]*DZ;
+  if(view.yaw||view.pitch){
+    var dx=X-PX, dz=Z-PZ, cy=Math.cos(view.yaw), sy=Math.sin(view.yaw), x1=dx*cy+dz*sy, z1=-dx*sy+dz*cy;
+    var cp=Math.cos(view.pitch), sp=Math.sin(view.pitch), y2=Y*cp+z1*sp, z2=-Y*sp+z1*cp;
+    X=x1+PX; Y=y2; Z=z2+PZ;
+  }
+  return {x:OX+X+Z*CA, y:OY-Y+Z*SA};
+}
+var AX_END=[[1.5,0,0],[0,1.3,0],[0,0,1.3]], FLOOR=[1.4,1.2];
+var BOX=[[0,0,0],AX_END[0],AX_END[1],AX_END[2],[FLOOR[0],0,FLOOR[1]],RING];
+REF.forEach(function(r){BOX.push(r.v);}); SENT.forEach(function(s){BOX.push(s.NEW);});
+function ext(){var a={x0:1e9,y0:1e9,x1:-1e9,y1:-1e9}; BOX.forEach(function(b){var q=Praw(b); a.x0=Math.min(a.x0,q.x); a.x1=Math.max(a.x1,q.x); a.y0=Math.min(a.y0,q.y); a.y1=Math.max(a.y1,q.y);}); return a;}
+var fit={key:''};
+function P3(v){   /* while turned: scale + centre so it fills the same area as the normal view (never bigger) */
+  if(!view.yaw && !view.pitch) return Praw(v);
+  var key=view.yaw+'|'+view.pitch;
+  if(fit.key!==key){ var vv=view; view={yaw:0,pitch:0}; var d=ext(); view=vv; var t=ext();
+    var mg=45*Math.min(1,Math.hypot(1-Math.cos(view.yaw),view.pitch)/.4); d.x0+=mg; d.x1-=mg; d.y0+=mg; d.y1-=mg;
+    fit={key:key,k:Math.min(1,(d.x1-d.x0)/(t.x1-t.x0),(d.y1-d.y0)/(t.y1-t.y0)),dcx:(d.x0+d.x1)/2,dcy:(d.y0+d.y1)/2,tcx:(t.x0+t.x1)/2,tcy:(t.y0+t.y1)/2}; }
+  var q=Praw(v); return {x:fit.dcx+(q.x-fit.tcx)*fit.k, y:fit.dcy+(q.y-fit.tcy)*fit.k};
+}
+
+/* ---- picture layers (bottom → top): space · arrows · dots · labels ---- */
+var gSpace=el('g');
+var g3=el('g',{},gSpace), gA=el('g',{},gSpace), gD=el('g',{},gSpace), gL=el('g',{},gSpace);
+var floor=[];
+for(var i=0;i<=4;i++){floor.push({a:[i/4*FLOOR[0],0,0],b:[i/4*FLOOR[0],0,FLOOR[1]],e:el('line',{'class':'s-grid','stroke-width':2},g3)});
+                      floor.push({a:[0,0,i/4*FLOOR[1]],b:[FLOOR[0],0,i/4*FLOOR[1]],e:el('line',{'class':'s-grid','stroke-width':2},g3)});}
+var axA=[mkArrow(C.mut,g3,3),mkArrow(C.mut,g3,3),mkArrow(C.mut,g3,3)];
+var axT=[txt('sound',{'font-size':26,'class':'mut b','text-anchor':'start'},gL),txt('jewellery',{'font-size':26,'class':'mut b','text-anchor':'middle'},gL),txt('feeling',{'font-size':26,'class':'mut b','text-anchor':'start'},gL)];
+REF.forEach(function(r){r.dot=el('circle',{r:9,'class':'f-'+r.c},g3); r.t=txt(r.w,{'font-size':26,'class':'b f-'+r.c},gL);});
+/* “ring” alone: teal, and a grey copy that stays visible once attention has moved “ring” */
+var C_GREY={s:'s-grey',f:'f-grey'};
+var ringA=mkArrow(C.k,gA,6), ringAG=mkArrow(C_GREY,gA,6);
+var raDot=el('circle',{r:11,'class':'f-bg s-k','stroke-width':4},gD), raDotG=el('circle',{r:11,'class':'f-bg s-grey','stroke-width':4},gD);
+var raL=txt('ring · initial embedding',{'font-size':24,'class':'b f-k'},gL), raLG=txt('ring · initial embedding',{'font-size':24,'class':'b f-grey'},gL);
+var turnHint=txt('drag to turn the space',{x:1270,y:779,'text-anchor':'end','font-size':24,'class':'mut'});   /* same spot as deck 1 */
+var wRing=txt('ring',{x:90,y:100,'font-size':34,'class':'b f-k'});   /* slide 5: only the word “ring” (its vector does not depend on any sentence) */
+
+/* sentence row (+ attention bars on the “with attention” slides); per sentence: the context arrow, the new “ring” */
+SENT.forEach(function(s){
+  s.g=el('g');
+  s.ta=txt('How much “ring” listens to each word:',{x:90,y:44,'font-size':26,'class':'mut b'},s.g);
+  s.t=s.words.map(function(w){var c=KEYC[w]; return txt(w,{y:100,'font-size':34,'class':c?'b f-'+c:'ink'},s.g);});
+  s.gBars=el('g',{},s.g);
+  s.bars=s.words.map(function(w){var c=KEYC[w]; return el('rect',{y:112,rx:2,height:0,'class':c?'f-'+c:'f-grey'},s.gBars);});
+  s.gAtt=el('g',{},gA); s.gAttL=el('g',{},gL);   /* slides 6 / 8 */
+  s.dA=mkArrow(C[s.col],s.gAtt,6); s.dL=txt('+ context',{'font-size':24,'class':'b f-'+s.col},s.gAttL);
+  s.nA=mkArrow(C.k,s.gAtt,6); s.nD=el('circle',{r:13,'class':'f-k s-bg','stroke-width':4},s.gAtt); s.nL=txt('ring · '+s.tag+' sentence',{'font-size':24,'class':'b f-k'},s.gAttL);
+  s.gCmp=el('g',{},gA); s.gCmpL=el('g',{},gL);   /* slide 8 (both sentences) */
+  s.cA=mkArrow(C[s.col],s.gCmp,6); s.cD=el('circle',{r:13,'class':'f-k s-bg','stroke-width':4},s.gCmp); s.cL=txt('ring · '+s.tag+' sentence',{'font-size':24,'class':'b f-'+s.col},s.gCmpL);
+});
+/* slide 8 lines: how slides 1–7 answer the deck question (after 3Blue1Brown’s summary of attention) */
+var gCmp=el('g');
+var cmpT1=txt('“ring” starts at the same initial embedding in both sentences, with no context.',{x:90,y:62,'font-size':30,'class':'ink b'},gCmp);
+var cmpT2=txt('Attention works out which words matter and how they should change “ring”.',{x:90,y:108,'font-size':30,'class':'ink'},gCmp);
+var cmpT3=txt('It adds that change, moving “ring” toward the meaning that fits: jewellery or a phone sound.',{x:90,y:154,'font-size':30,'class':'ink'},gCmp);
+
+/* 9. Summary “What You Learned”: same look as deck 1’s last slide (numbered circle, bold line, grey line) */
+var gSum=el('g');
+var SUM=[
+ ['A homonym is one word with more than one meaning.','“ring” can mean jewellery or a phone sound.'],
+ ['Every word starts with one initial embedding.','The same vector in every sentence (aka static embedding), so it can’t pick a meaning.'],
+ ['Attention lets a word listen to the words before it.','The bars show how much: “ring” listens most to “engaged” or “phone”.'],
+ ['What it listens to adds a change to its vector.','initial embedding + change = refined embedding (aka contextual embedding)'],
+ ['Each sentence gives the word its own refined embedding.','Near jewellery after “engaged”, near sound after “phone”:\nthat is how LLMs tell homonyms apart.'],
+ ['The model learned where to look by practising.','Scores come from guessing the next word; the shares add up to 100%.']
+];
+/* \n = a line break chosen at a phrase boundary, so every line fits inside the 1600-wide picture (as in deck 1) */
+var sumY=110;
+SUM.forEach(function(s,i){
+  var g=el('g',{},gSum), y=sumY, L0=s[0].split('\n'), L1=s[1].split('\n'), ys=y+L0.length*44;
+  el('circle',{cx:250,cy:y-10,r:28,'class':'f-link'},g);
+  txt(String(i+1),{x:250,y:y,'text-anchor':'middle','font-size':28,'class':'f-bg b'},g);
+  L0.forEach(function(l,k){txt(l,{x:305,y:y+k*44,'font-size':34,'class':'ink b'},g);});
+  L1.forEach(function(l,k){txt(l,{x:305,y:ys+k*34,'font-size':26,'class':'mut'},g).setAttribute('xml:space','preserve');});
+  sumY=ys+(L1.length-1)*34+80;   /* 80 (deck 1: 96) so 6 points fit */
+  SUM[i]={g:g};
+});
+
+/* ------------------------------------------------------------------ */
+/* 9–11. How attention picks its words (no 3D picture; each slide plays by itself, ↻ Replay)            */
+/*  9 (sc) highlights = scores · 10 (sh) scores → one 100% strip → shares → the bars of slide 6 ·        */
+/*  11 (pr) the scores are learned by guessing the next word (both sentences, like slide 4)             */
+/* ------------------------------------------------------------------ */
+var AW=SENT[0], AMAX=.5, AY=330, ASZ=52;
+var gAt=el('g');                     /* the engaged sentence, big and centred (slides 9 and 10) */
+var gAtHL=el('g',{},gAt);            /* highlights behind the words: stronger = better clue (same proportions as the bars of slide 6) */
+var atHL=AW.words.map(function(w){var c=KEYC[w]; return el('rect',{rx:10,'class':c?'f-'+c:'f-grey','fill-opacity':(.08+.40*AW.W[w]/AMAX).toFixed(2)},gAtHL);});
+var atW=AW.words.map(function(w){var c=KEYC[w]; return txt(w,{y:AY,'font-size':ASZ,'class':c?'b f-'+c:'ink'},gAt);});
+var atNote=txt('stronger highlight = better clue for “ring”',{x:800,y:470,'text-anchor':'middle','font-size':28,'class':'mut'});
+var gSh=el('g');                     /* slide 10: 100% strip → pieces → bars */
+var shHead=txt('How much “ring” listens to each word:',{x:800,y:220,'text-anchor':'middle','font-size':28,'class':'mut b'},gSh);
+var shBox=el('rect',{rx:6,height:46,'class':'f-bg s-mut','stroke-width':2},gSh);
+var shGrey=el('rect',{rx:4,height:38},gSh); shGrey.style.fill='var(--line)';
+var shSeg=AW.words.map(function(w){var c=KEYC[w]; return el('rect',{rx:3,'class':c?'f-'+c:'f-grey'},gSh);});
+var shPct=txt('100%',{'font-size':30,'class':'mut b'},gSh);
+var shLab=[3,5,7].map(function(k){var w=AW.words[k]; return {k:k,t:txt(w,{'text-anchor':'middle','font-size':24,'class':'b f-'+KEYC[w]},gSh)};});
+var gPr=el('g');                     /* slide 11: both sentences side by side (like slide 4), a blank to guess */
+el('line',{x1:800,y1:190,x2:800,y2:390,'class':'s-line','stroke-width':2},gPr);
+var PRC=[{cx:430,first:['She','just','got','engaged.'],key:3,fill:'sparkly',col:'no'},
+         {cx:1170,first:['She','just','got','a','new','phone.'],key:5,fill:'catchy',col:'yes'}];
+PRC.forEach(function(c){
+  c.hlG=el('g',{},gPr); c.hl=el('rect',{rx:10,'class':'f-'+c.col,'fill-opacity':.45},c.hlG);
+  c.t1=c.first.map(function(w){var k=KEYC[w]; return txt(w,{y:260,'font-size':42,'class':k?'b f-'+k:'ink'},gPr);});
+  c.t2=['I','love','the','ring.','It’s','so'].map(function(w){var k=KEYC[w]; return txt(w,{y:330,'font-size':42,'class':k?'b f-'+k:'ink'},gPr);});
+  c.bl=el('line',{'class':'s-ink','stroke-width':3,'stroke-linecap':'round'},gPr);
+  c.fl=txt(c.fill,{y:324,'text-anchor':'middle','font-size':42,'class':'b f-'+c.col},gPr);
+});
+var prLook=txt('“ring” looks back: the highlighted word is the best clue',{x:800,y:440,'text-anchor':'middle','font-size':26,'class':'mut'},gPr);
+var prL1=txt('Each wrong guess nudges the model’s settings a little.',{x:800,y:540,'text-anchor':'middle','font-size':32,'class':'ink b'},gPr);
+var prL2=txt('After billions of sentences, looking at the helpful words wins.',{x:800,y:590,'text-anchor':'middle','font-size':32,'class':'ink'},gPr);
+var prL3=txt('Nobody wrote a rule like “engaged → jewellery”. The real scores are learned numbers, not rules you can read.',{x:800,y:680,'text-anchor':'middle','font-size':24,'class':'mut'},gPr);
+function rowX(ts,cx,gap,extra){   /* one centred row of words (+ a blank of width extra at the end); returns the positions */
+  var ws=ts.map(function(t){return t.getComputedTextLength?t.getComputedTextLength():80;});
+  var tot=ws.reduce(function(a,b){return a+b;},0)+gap*(ts.length-1)+(extra?gap+extra:0), x=cx-tot/2, x0=x, xs=[];
+  ts.forEach(function(t,i){set(t,{x:x}); xs.push(x); x+=ws[i]+gap;});
+  return {xs:xs,ws:ws,x0:x0,x1:x0+tot,bx:x};
+}
+var AT=null, STRIP=null;
+function layoutNew(){
+  AT=rowX(atW,800,24);
+  atHL.forEach(function(r,k){set(r,{x:AT.xs[k]-7,y:AY-ASZ*.95,width:AT.ws[k]+14,height:ASZ*1.3});});
+  var SX=AT.x0, SW=AT.x1-AT.x0, SY=420, cum=0;
+  STRIP={seg:[],bar:[]};
+  AW.words.forEach(function(w,k){var sh=AW.W[w];
+    STRIP.seg.push({x:SX+cum*SW+1.5,y:SY+4,w:Math.max(2,sh*SW-3),h:38});
+    STRIP.bar.push({x:AT.xs[k],y:AY+ASZ*.35,w:AT.ws[k],h:Math.max(3,sh*200)});
+    cum+=sh;});
+  set(shBox,{x:SX-4,y:SY,width:SW+8}); set(shGrey,{x:SX,y:SY+4,width:SW}); set(shPct,{x:SX+SW+22,y:SY+34});
+  shLab.forEach(function(l){var g=STRIP.seg[l.k]; set(l.t,{x:g.x+g.w/2,y:SY+80});});
+  PRC.forEach(function(c){
+    var r1=rowX(c.t1,c.cx,16), r2=rowX(c.t2,c.cx,16,170);
+    set(c.hl,{x:r1.xs[c.key]-7,y:260-42*.95,width:r1.ws[c.key]+14,height:42*1.3});
+    set(c.bl,{x1:r2.bx,y1:336,x2:r2.bx+170,y2:336}); set(c.fl,{x:r2.bx+85});
+  });
+}
+function renderNew(P){
+  var iSc=S.sc-1, iSh=S.sh-1, iPr=S.pr-1;
+  var ta=auOf(iSc)*autoOf(iSc), tb=auOf(iSh)*autoOf(iSh), tc=auOf(iPr)*autoOf(iPr);
+  op(gAt,IN(P,S.sc,.05,.35)*(1-IN(P,S.pr,0,.25)));
+  var hlOut=clamp((tb-2.7)/.6);
+  atHL.forEach(function(r,k){op(r,ease(clamp((ta-.3*k)/.3))*(1-hlOut));});   /* one word after another (0.3 s each) */
+  op(atNote,IN(P,S.sc,.05,.35)*(1-IN(P,S.sh,0,.25))*clamp((ta-2.5)/.4));
+  /* slide 10: strip appears (0.2–0.7 s) → coloured pieces (1.1–1.8 s) → names (1.8–2.2 s) → pieces drop and become the bars (2.7–3.9 s) → heading */
+  op(gSh,IN(P,S.sh,0,.3)*(1-IN(P,S.pr,0,.25)));
+  var sIn=clamp((tb-.2)/.5), sOut=clamp((tb-2.7)/.4), cIn=clamp((tb-1.1)/.7), drop=ease(clamp((tb-2.7)/1.2));
+  op(shBox,sIn*(1-sOut)); op(shPct,sIn*(1-sOut)); op(shGrey,sIn*(1-cIn));
+  if(STRIP) shSeg.forEach(function(r,k){var a=STRIP.seg[k], b=STRIP.bar[k];
+    set(r,{x:lerp(a.x,b.x,drop),y:lerp(a.y,b.y,drop),width:lerp(a.w,b.w,drop),height:lerp(a.h,b.h,drop)}); op(r,cIn);});
+  shLab.forEach(function(l){op(l.t,clamp((tb-1.8)/.4)*(1-clamp((tb-2.7)/.2)));});
+  op(shHead,clamp((tb-3.6)/.6));
+  /* slide 11: clue lights up → the blank fills → how the scores were learned */
+  op(gPr,IN(P,S.pr,.05,.35)*(1-IN(P,S.sum,0,.25)));
+  PRC.forEach(function(c){op(c.hlG,clamp((tc-.3)/.6)); op(c.fl,clamp((tc-1.6)/.6));});
+  op(prLook,clamp((tc-.6)/.4)); op(prL1,clamp((tc-2.8)/.6)); op(prL2,clamp((tc-3.4)/.6)); op(prL3,clamp((tc-4.2)/.6));
+}
+
+
+/* ------------------------------------------------------------------ */
+/* labels: placed so they never cover a line, a dot or another label   */
+/* (placed once per slide + view, against the slide’s FINISHED picture) */
+/* ------------------------------------------------------------------ */
+var AXC=[[[12,9,'start'],[0,42,'middle'],[10,-16,'start']],[[0,-16,'middle'],[-14,6,'end'],[14,6,'start']],
+         [[12,-6,'start'],[12,26,'start'],[-12,-16,'end'],[0,-26,'middle'],[16,-32,'start'],[-16,20,'end']]];
+function tw(t){if(t._w==null){t._w=t.getComputedTextLength?t.getComputedTextLength():0; if(!t._w) t._w=t.textContent.length*13;} return t._w;}
+function segHits(s,b){   /* does segment s cross box b? (Liang–Barsky) */
+  var x1=s[0],y1=s[1],dx=s[2]-x1,dy=s[3]-y1,t0=0,t1=1,p=[-dx,dx,-dy,dy],q=[x1-b[0],b[2]-x1,y1-b[1],b[3]-y1];
+  for(var i=0;i<4;i++){ if(p[i]===0){ if(q[i]<0) return false; } else { var r=q[i]/p[i]; if(p[i]<0){ if(r>t1) return false; if(r>t0) t0=r; } else { if(r<t0) return false; if(r<t1) t1=r; } } }
+  return true;
+}
+var LAB={key:''};
+function anc(cx){return cx>.35?'start':cx<-.35?'end':'middle';}
+function ptC(h,r0){var out=[]; [0,1,2,3,4,5,6].forEach(function(ri){var r=[18,30,46,66,92,120,150][ri]+(r0||0);
+  for(var k=0;k<12;k++){var t=k/12*2*Math.PI, cx=Math.cos(t), cy=Math.sin(t); out.push([cx*r,cy*r+h*.35+(Math.abs(cx)<.35?cy*h*.4:0),anc(cx),r*2]);}}); return out;}
+function arrC(a,b,h){var dx=b.x-a.x, dy=b.y-a.y, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L, mx=(a.x+b.x)/2, my=(a.y+b.y)/2, out=[];
+  [.5,.35,.65].forEach(function(t,ti){[12,24,40,60,85,115].forEach(function(d){[1,-1].forEach(function(sg){
+    var px=a.x+dx*t+nx*d*sg, py=a.y+dy*t+ny*d*sg, cx=nx*sg, cy=ny*sg;
+    out.push([px-mx,py-my+h*.35+(Math.abs(cx)<.35?cy*h*.4:0),anc(cx),d*2+ti*30]);});});}); return out;}
+function place(items,segs,boxes){
+  items.forEach(function(it){
+    var w=tw(it.el), h=it.size||24, best=null;
+    it.c.forEach(function(c,ci){
+      var x0=it.x+c[0]-(c[2]==='start'?0:c[2]==='end'?w:w/2), yb=it.y+c[1];
+      var b=[x0-4,yb-h*.8-4,x0+w+4,yb+h*.25+4], sc=c.length>3?c[3]:ci;
+      if(b[0]<4||b[2]>1596||b[1]<4||b[3]>896) sc+=800;
+      for(var k=0;k<segs.length;k++) if(segHits(segs[k],b)) sc+=segs[k][4]||1000;
+      for(k=0;k<boxes.length;k++){var o=boxes[k]; if(!(b[2]<o[0]||b[0]>o[2]||b[3]<o[1]||b[1]>o[3])) sc+=1000;}
+      if(!best||sc<best.sc) best={sc:sc,c:c,b:b};
+    });
+    set(it.el,{x:it.x+best.c[0],y:it.y+best.c[1],'text-anchor':best.c[2]}); boxes.push([best.b[0]-5,best.b[1]-5,best.b[2]+5,best.b[3]+5]);   /* keep a gap between labels */
+  });
+}
+function headBox(a,b,w){   /* box around an arrowhead (same size rule as drawArrow) */
+  var L=Math.hypot(b.x-a.x,b.y-a.y)||1, hl=Math.min(22+w,L*.6), hw=hl*.45+3, bx=b.x-(b.x-a.x)/L*hl, by=b.y-(b.y-a.y)/L*hl;
+  return [Math.min(b.x,bx)-hw,Math.min(b.y,by)-hw,Math.max(b.x,bx)+hw,Math.max(b.y,by)+hw];
+}
+function arrowSeg(a,b,segs,dots){segs.push([a.x,a.y,b.x,b.y]); dots.push(headBox(a,b,6));}
+function layoutLabels(i){
+  var key=i+'|'+view.yaw.toFixed(4)+'|'+view.pitch.toFixed(4);
+  if(LAB.key===key) return; LAB.key=key;
+  var segs=[], dots=[], boxes=[], id=SC[i].id, o=P3([0,0,0]), ra=P3(RING), items=[];
+  AX_END.forEach(function(e){var p=P3(e); segs.push([o.x,o.y,p.x,p.y]); dots.push(headBox(o,p,3));});
+  REF.forEach(function(r){var p=P3(r.v); dots.push([p.x-13,p.y-13,p.x+13,p.y+13]);});
+  arrowSeg(o,ra,segs,dots); dots.push([ra.x-15,ra.y-15,ra.x+15,ra.y+15]);
+  SENT.forEach(function(s){ var n=P3(s.NEW);
+    if(id===SC[s.att-1].id){ arrowSeg(ra,n,segs,dots); arrowSeg(o,n,segs,dots); dots.push([n.x-17,n.y-17,n.x+17,n.y+17]);
+      items.push({el:s.nL,x:n.x,y:n.y,c:ptC(24,4)},{el:s.dL,x:(ra.x+n.x)/2,y:(ra.y+n.y)/2,c:arrC(ra,n,24)}); }
+    if(id==='cmp'){ arrowSeg(ra,n,segs,dots); dots.push([n.x-17,n.y-17,n.x+17,n.y+17]); items.push({el:s.cL,x:n.x,y:n.y,c:ptC(24,4)}); if(s.tag==='phone') arrowSeg(o,n,segs,dots); }
+  });
+  /* keep clear of the sentence row + track / slide-9 lines + track, and the reset button */
+  boxes.push([0,0,1600,235],[1000,730,1600,880]);   /* sentence row + track, hint + Reset view + Replay */
+  boxes=boxes.concat(dots);
+  place([{el:raL,x:ra.x,y:ra.y,c:ptC(24,2)}],segs,boxes);
+  set(raLG,{x:raL.getAttribute('x'),y:raL.getAttribute('y'),'text-anchor':raL.getAttribute('text-anchor')});
+  place(AX_END.map(function(e,k){var p=P3(e); return {el:axT[k],x:p.x,y:p.y,c:AXC[k].concat(ptC(26,10).map(function(c){return [c[0],c[1],c[2],c[3]+40];})),size:26};}),segs,boxes);
+  place(REF.map(function(r){var p=P3(r.v); return {el:r.t,x:p.x,y:p.y,c:ptC(26),size:26};}),segs,boxes);
+  place(items,segs,boxes);
+}
+
+/* ------------------------------------------------------------------ */
+/* render(P): the slide position P + the step position of each slide   */
+/* ------------------------------------------------------------------ */
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+var cur=0, P=0, lastP=-1;
+var spLeave=null, dirty=true;
+var auStart=-1e9, auFreeze=null;   /* auto slides: the animation starts once the slide has arrived; ↻ Replay restarts it */
+function auOf(i){   /* 0…1 progress of the one animation on auto slide i */
+  if(!autoOf(i)) return 0; if(i!==cur) return i<cur?1:0; if(auFreeze!==null) return auFreeze;
+  return clamp((performance.now()-auStart)/(autoOf(i)*1000));
+}
+/* slides 6 / 7 play their 3 parts one after another: bars 1.0 s · pause .6 · + context 1.3 s · pause .6 · new “ring” 1.3 s (= auto 4.8 s) */
+var PART=[[0,1.0],[1.6,2.9],[3.5,4.8]];
+function auPart(i){ var t=auOf(i)*autoOf(i); for(var k=PART.length-1;k>=0;k--){ if(t>=PART[k][0]) return k+clamp((t-PART[k][0])/(PART[k][1]-PART[k][0])); } return 0; }
+function spOf(i){ if(i===cur) return stepsOf(i)?auPart(i):0; if(spLeave&&anim&&spLeave.i===i) return spLeave.v; return i<cur?stepsOf(i):0; }
+/* “ring (alone)” on each slide: t = how much of its arrow is drawn, g = how grey it is */
+function ringState(i){
+  var id=SC[i]&&SC[i].id, v=spOf(i);
+  if(id==='w1') return {t:ease(auOf(i)),g:0};                /* plays by itself: look up “ring” */
+  if(id==='a1'||id==='a2') return {t:1,g:ease(clamp(v-2))};  /* part 3: the new vector; the initial one stays, grey */
+  if(id==='cmp'||i>S.cmp-1) return {t:1,g:1};             /* starts where slide 7 ended; kept while fading out after slide 8 */
+  return {t:0,g:0};
+}
+function render(P){
+  var now=performance.now();
+  if(vAnim){ var vk=clamp((now-vAnim.start)/vAnim.dur), ve=ease(vk);
+    view.yaw=lerp(vAnim.y,vAnim.ty,ve); view.pitch=lerp(vAnim.p,vAnim.tp,ve); if(vk>=1) vAnim=null; }
+  op(gTitle,1-R(P,0,.25));
+  /* slide 2: sentence → underline (0.6 s) → pause → “jewellery?” → pause → “a phone sound?” */
+  op(gQ,IN(P,S.q,.02,.12)*(1-IN(P,S.b,0,.25)));
+  var ul=IN(P,S.q,.2,.4); set(qLine,{x1:qL.x1,y1:qL.y,x2:lerp(qL.x1,qL.x2,ul),y2:qL.y}); op(qLine,ul>0?1:0);
+  op(qJ,IN(P,S.q,.53,.66)); op(qP,IN(P,S.q,.86,1));
+  op(gB,IN(P,S.b,.1,.5)*(1-IN(P,S.s,0,.25)));
+  op(gS,IN(P,S.s,.1,.5)*(1-IN(P,S.w1,0,.2)));
+
+  var sp3=IN(P,S.w1,.05,.3);
+  op(gSpace,sp3*(1-IN(P,S.sc,0,.25)));   /* the picture fades out on the move to slide 9 */
+  var settled=Math.abs(P-cur)<1e-6;
+  op(turnHint,(turnSlide(cur) && settled && !vTouched)?1:0);
+  op(gRst,(turnSlide(cur) && settled)?1:0); op(gRep,(autoOf(cur) && settled)?1:0);
+  op(wRing,IN(P,S.w1,.02,.3)*(1-IN(P,S.a1,0,.3)));
+  var o=P3([0,0,0]), ra=P3(RING);
+  if(sp3>0){
+    AX_END.forEach(function(e,k){var p=P3(e); drawArrow(axA[k],o.x,o.y,p.x,p.y,1);});
+    floor.forEach(function(f){var a=P3(f.a),b=P3(f.b); set(f.e,{x1:a.x,y1:a.y,x2:b.x,y2:b.y});});
+    REF.forEach(function(r){var p=P3(r.v); set(r.dot,{cx:p.x,cy:p.y});});
+    set(raDot,{cx:ra.x,cy:ra.y}); set(raDotG,{cx:ra.x,cy:ra.y});
+    layoutLabels(turnSlide(cur)?cur:(cur>S.cmp-1?S.cmp-1:S.w1-1));   /* on slide 9: keep slide 8’s labels while they fade */
+  }
+  /* “ring (alone)”: blend the states of the two slides P is between */
+  var i0=Math.floor(P), i1=Math.min(N-1,i0+1), f=P-i0, s0=ringState(i0), s1=ringState(i1);
+  var rt=lerp(s0.t,s1.t,f), rg=lerp(s0.g,s1.g,f);
+  drawArrow(ringA,o.x,o.y,ra.x,ra.y,rt); drawArrow(ringAG,o.x,o.y,ra.x,ra.y,rt);
+  op(ringA.g,rt>0?1-rg:0); op(ringAG.g,rt>0?rg:0);
+  var rd=R(rt,.85,1); op(raDot,rd*(1-rg)); op(raL,rd*(1-rg)); op(raDotG,rd*rg); op(raLG,rd*rg);
+
+  /* slide 8 plays by itself, starting where slide 7 ended: the green arrow fades (0.6 s), then the orange “+ context” draws (1.2 s) */
+  var cmpT=IN(P,S.cmp,0,1), uc=auOf(S.cmp-1)*2.1, greenOut=clamp(uc/.6), orange=ease(clamp((uc-.6)/1.2)), onDot=clamp((uc-1.7)/.3);
+  SENT.forEach(function(s,si){
+    var a=s.att-1, nxt=si===0?S.a2:S.cmp;
+    var out=1-IN(P,nxt,0,.3), sIn=si===0?IN(P,s.att,.02,.3):IN(P,s.att,.3,.6), vis=sIn*out, aT=IN(P,s.att,0,.3);
+    op(s.g,vis);
+    var spa=spOf(a);
+    /* slides 6 / 7: step 1 bars (how much “ring” listens), step 2 context arrow, step 3 the new “ring” */
+    var bt=ease(clamp(spa))*IN(P,s.att,0,1);
+    s.bars.forEach(function(b,j){set(b,{height:Math.max(bt>0?2:0,s.W[s.words[j]]*80*bt)});});
+    op(s.gBars,aT); op(s.ta,aT*bt);
+    /* the phone arrows stay on slide 8 (it starts where slide 7 ended) */
+    var keep=si===1?sIn*aT:vis*aT, n=P3(s.NEW), dt=ease(clamp(spa-1)), nt=ease(clamp(spa-2));
+    op(s.gAtt,keep); op(s.gAttL,keep);
+    if(keep>0){
+      drawArrow(s.dA,ra.x,ra.y,n.x,n.y,dt); op(s.dL,R(dt,.7,1)*(1-cmpT));
+      set(s.nD,{cx:n.x,cy:n.y}); op(s.nD,R(dt,.85,1));
+      drawArrow(s.nA,o.x,o.y,n.x,n.y,nt); op(s.nA.g,nt>0?1-greenOut:0); op(s.nL,R(nt,.7,1)*(1-cmpT));
+    }
+    /* slide 8 labels: where “ring” lands in each sentence; the engaged “+ context” arrow is drawn again here */
+    op(s.gCmp,cmpT); op(s.gCmpL,cmpT);
+    if(cmpT>0){
+      if(si===0){ drawArrow(s.cA,ra.x,ra.y,n.x,n.y,orange); set(s.cD,{cx:n.x,cy:n.y}); op(s.cD,onDot); op(s.cL,onDot); }
+      else { op(s.cA.g,0); op(s.cD,0); op(s.cL,1); }
+    }
+  });
+  op(gCmp,IN(P,S.cmp,.2,.5)*(1-IN(P,S.sc,0,.25)));
+  renderNew(P);
+  SUM.forEach(function(s,i){op(s.g,IN(P,S.sum,.3+i*.1,.5+i*.1));});   /* summary: the 6 points appear one after another (step .1 so the last one ends with the move) */
+}
+
+/* buttons in the picture (Reset view, ↻ Replay): click, or Enter / Space */
+function onAct(g,fn){
+  g.addEventListener('click',function(e){e.stopPropagation(); fn();});
+  g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault(); e.stopPropagation(); fn();}});
+}
+/* reset-view button (walk slides), same look as deck 1 */
+/* Reset view (right above the replay spot) and ↻ Replay (slides 5 and 8), in the same spots as deck 1 */
+var gRst=el('g',{'class':'rbtn',role:'button',tabindex:'0','aria-label':'Reset view'});
+el('rect',{x:1290,y:740,width:270,height:60,rx:30,'class':'f-bg s-link','stroke-width':2},gRst);
+txt('↺  Reset view',{x:1425,y:779,'text-anchor':'middle','font-size':24,'class':'f-link b'},gRst).setAttribute('xml:space','preserve');
+op(gRst,0);
+var gRep=el('g',{'class':'rbtn',role:'button',tabindex:'0','aria-label':'Replay'});
+el('rect',{x:1290,y:810,width:270,height:60,rx:30,'class':'f-bg s-link','stroke-width':2},gRep);
+txt('↻  Replay',{x:1425,y:849,'text-anchor':'middle','font-size':24,'class':'f-link b'},gRep).setAttribute('xml:space','preserve');
+op(gRep,0);
+function viewHome(ms){   /* ease back to the normal view (shortest way round) */
+  if(!view.yaw && !view.pitch) return;
+  var y=Math.atan2(Math.sin(view.yaw),Math.cos(view.yaw));
+  vAnim={y:y,p:view.pitch,ty:0,tp:0,start:performance.now(),dur:ms}; lastP=-1;
+}
+onAct(gRst,function(){viewHome(450);});
+onAct(gRep,function(){auFreeze=null; auStart=performance.now(); dirty=true;});
+
+/* walk slides: drag to turn the 3D space (mouse only). Never changes the slide. */
+var svgEl=document.getElementById('svg');
+svgEl.addEventListener('pointerdown',function(e){
+  if(!turnSlide(cur) || Math.abs(P-cur)>1e-6 || e.pointerType!=='mouse' || e.button!==0) return;
+  if(gRst.contains(e.target) || gRep.contains(e.target)) return;
+  e.preventDefault(); vAnim=null;
+  var x0=e.clientX, y0=e.clientY, yaw0=view.yaw, p0=view.pitch;
+  try{svgEl.setPointerCapture(e.pointerId);}catch(_){}
+  svgEl.classList.add('turning');
+  function mv(ev){ view.yaw=yaw0+(ev.clientX-x0)*.008; view.pitch=Math.max(-.9,Math.min(.9,p0+(ev.clientY-y0)*.008)); vTouched=true; lastP=-1; }
+  function up(){ svgEl.classList.remove('turning'); svgEl.removeEventListener('pointermove',mv); svgEl.removeEventListener('pointerup',up); svgEl.removeEventListener('pointercancel',up); }
+  svgEl.addEventListener('pointermove',mv); svgEl.addEventListener('pointerup',up); svgEl.addEventListener('pointercancel',up);
+});
+
+/* ------------------------------------------------------------------ */
+/* timeline + slide controls (Back / Next change the slide only)       */
+/* ------------------------------------------------------------------ */
+var anim=null;
+var capK=document.getElementById('capK'), capT=document.getElementById('capT'), cap=document.getElementById('cap');
+var prev=document.getElementById('prev'), next=document.getElementById('next'), count=document.getElementById('count'), dots=document.getElementById('dots');
+var seen={0:1};
+for(var d=0;d<N;d++){(function(d){var b=document.createElement('button'); b.type='button'; if(SC[d].sec>=0 && (d===0||SC[d-1].sec!==SC[d].sec)) b.classList.add('sec');   /* first slide of a trail part: bigger dot (session 4) */
+   b.setAttribute('aria-label','Slide '+(d+1)+(SC[d].sec>=0?': '+SECS[SC[d].sec]:'')); b.addEventListener('click',function(){go(d);}); dots.appendChild(b);})(d);}
+function trail(sec){
+  capK.textContent='';
+  SECS.forEach(function(s,i){
+    if(i) {capK.appendChild(document.createTextNode(' ')); var sp=document.createElement('span'); sp.className='sep'; sp.textContent='›'; sp.setAttribute('aria-hidden','true'); capK.appendChild(sp); capK.appendChild(document.createTextNode(' '));}
+    var e=document.createElement('span'); e.textContent=s; e.className=i<sec?'past':(i===sec?'now':'next');
+    if(i===sec) e.setAttribute('aria-current','step');
+    capK.appendChild(e);
+  });
+}
+function ui(){
+  var s=SC[cur];
+  trail(s.sec); capT.textContent=cur===0?'':s.t;
+  if(s.s){var sm=document.createElement('small'); sm.textContent=s.s; capT.appendChild(sm);}
+  cap.style.visibility=cur===0?'hidden':'visible';
+  cap.classList.remove('fade'); void cap.offsetWidth; cap.classList.add('fade');
+  prev.disabled=false; prev.innerHTML=cur===0?'← <span class="lt">Back 1: </span>Embeddings':'← Back';   /* slide 1: back to deck 1 (short label on phones) */
+  next.disabled=cur===N-1;
+  count.textContent=(cur+1)+' / '+N;
+  svgEl.classList.toggle('turn',turnSlide(cur));
+  [].forEach.call(dots.children,function(b,i){if(i===cur) b.setAttribute('aria-current','step'); else b.removeAttribute('aria-current'); b.classList.toggle('seen',!!seen[i]);});
+  try{history.replaceState(null,'','#'+(cur+1));}catch(e){}
+}
+function go(t){
+  if(t<0){ location.href=PREV_DECK; return; }   /* ← / Back on slide 1: previous topic */
+  t=Math.min(N-1,t); if(t===cur && !anim) return;
+  var fwd=t===cur+1 && Math.abs(P-cur)<1e-6;
+  var dur=reduce?.25:(fwd?DUR[t]:(t<cur?.6:.9));
+  spLeave={i:cur,v:spOf(cur)};   /* slides 6 / 7 keep their picture while fading out */
+  anim={from:P,to:t,start:performance.now(),dur:dur*1000,lin:fwd};
+  if(!turnSlide(t)) viewHome(400);   /* the turned view is kept on the walk slides and eases back when leaving them */
+  cur=t; seen[t]=1;
+  auFreeze=null; auStart=fwd?performance.now()+dur*1000+150:-1e9;   /* auto slides: play once the slide has arrived (Back / a dot: finished) */
+  ui();
+}
+function step(now){
+  if(anim){
+    var k=clamp((now-anim.start)/anim.dur);
+    P=lerp(anim.from,anim.to,anim.lin?k:ease(k));
+    if(k>=1){P=anim.to; anim=null; spLeave=null; dirty=true;}
+  }
+  if(autoOf(cur) && now<auStart+autoOf(cur)*1000+100) dirty=true;
+  if(P!==lastP||anim||vAnim||dirty){ render(P); lastP=P; dirty=false; }
+  requestAnimationFrame(step);
+}
+prev.addEventListener('click',function(){go(cur-1);});
+next.addEventListener('click',function(){go(cur+1);});
+document.addEventListener('keydown',function(e){
+  if(e.altKey||e.ctrlKey||e.metaKey) return;
+  var k=e.key;
+  if(e.target.closest && e.target.closest('.rbtn') && (k==='Enter'||k===' ')) return;
+  if(k==='ArrowRight'||k==='PageDown'||k===' '||(k==='Enter'&&e.target===document.body)){e.preventDefault(); go(cur+1);}
+  else if(k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){e.preventDefault(); go(cur-1);}
+  else if(k==='Home'){go(0);} else if(k==='End'){go(N-1);}
+  else if(k==='f'||k==='F'){fs();}
+});
+function fs(){try{if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen();}catch(e){}}
+document.getElementById('fsBtn').addEventListener('click',fs);
+var rootEl=document.documentElement, tb=document.getElementById('themeBtn');
+function isDark(){var t=rootEl.getAttribute('data-theme'); if(t) return t==='dark'; return window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;}
+function tl(){tb.setAttribute('aria-label',isDark()?'Switch to light mode':'Switch to dark mode');}
+tb.addEventListener('click',function(){var t=isDark()?'light':'dark'; rootEl.setAttribute('data-theme',t); try{localStorage.setItem('cps845-theme',t);}catch(e){} tl();});
+tl();
+function layoutSentences(){   /* word positions from the real text widths (runs again once the web font has loaded) */
+  SENT.forEach(function(s){var x=90; s.t.forEach(function(t,i){var w=t.getComputedTextLength?t.getComputedTextLength():80;
+    set(t,{x:x}); set(s.bars[i],{x:x,width:w}); x+=w+22;});});
+  [].forEach.call(document.querySelectorAll('#svg text'),function(t){t._w=null;});
+  layoutQ(); layoutNew(); LAB.key=''; lastP=-1;
+}
+var hs=(location.hash||'').slice(1), h=hs==='end'?N:parseInt(hs,10);
+if(h>=1&&h<=N){cur=h-1; P=cur; for(var s=0;s<=cur;s++) seen[s]=1;}
+/* for testing: __setP(p) jumps to position p (slides shown finished); __au(u) freezes a slide that plays by itself at u (0…1);
+   __sp(v) shows part v (0…3) of slides 6 / 7; __view(yaw,pitch) turns the space */
+window.__setP=function(p){anim=null; spLeave=null; P=p; cur=Math.round(p); auFreeze=null; auStart=-1e9; ui(); render(P); lastP=P;};
+window.__au=function(u){auFreeze=u; render(P); lastP=P;};
+window.__sp=function(v){ var k=Math.min(PART.length-1,Math.max(0,Math.ceil(v)-1)), t=v<=0?0:PART[k][0]+clamp(v-k)*(PART[k][1]-PART[k][0]); auFreeze=autoOf(cur)?t/autoOf(cur):0; render(P); lastP=P;};
+window.__state=function(){return {cur:cur,P:P,sp:+spOf(cur).toFixed(2),au:+auOf(cur).toFixed(2),anim:!!anim};};
+window.__view=function(y,p){vAnim=null; view.yaw=y; view.pitch=p; vTouched=!!(y||p); render(P); lastP=P;};
+window.__S=S;
+layoutSentences();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(layoutSentences);
+ui(); render(P); requestAnimationFrame(step);
+})();
+</script>
+</script>
+</body>
+</html>

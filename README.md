@@ -9,6 +9,7 @@ It works on your phone and your laptop. Each tab is its own page:
 - **Due:** every deadline, in date order (the next one is at the top)
 - **Docs:** every template (Word), worked example and rubric in one place
 - **Grades:** the Assessment Weighting Breakdown
+- **Lessons:** short visual explanations from the lab (Lab 3: 1 · how words become numbers)
 
 Lab submissions are due at **2pm (start of lab)** on the Friday shown, unless the date is marked otherwise.
 

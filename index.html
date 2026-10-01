@@ -60,7 +60,7 @@ details[open] > .dbody{animation:fade 200ms ease-out}
 
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;overflow-y:auto;scrollbar-gutter:stable}
 body{margin:0;background:var(--bg);color:var(--text);
   font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   font-size:1.0625rem;line-height:1.6;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
@@ -109,7 +109,7 @@ h2.sec-h{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:up
 .brand small{display:block;font-size:.8rem;font-weight:400;color:var(--muted)}
 .theme-btn{flex:none;width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;display:grid;place-items:center}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--nav-bg);padding-bottom:env(safe-area-inset-bottom)}
-.tabs ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr)}
+.tabs ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(6,1fr)}
 .tabs li{margin:0}
 .tabs a{display:flex;flex-direction:column;align-items:center;gap:3px;padding:.5rem .2rem .6rem;min-height:60px;
   color:var(--nav-text);text-decoration:none;font-size:.76rem;font-weight:700;border-top:4px solid transparent;
@@ -383,13 +383,23 @@ footer{max-width:1180px;margin:0 auto;padding:1rem 1.25rem 2rem;color:var(--mute
   .gcards .gcard{break-inside:avoid;display:inline-block;width:100%;margin:0 0 1.1rem}
 }
 @media print{.tabs,.theme-btn,.seg{display:none}body{padding:0}.js .view{display:block}.panel[hidden]{display:block!important}}
+/* Lessons tab: filter (same look as the .seg control) + type pill (same look as .now-badge) */
+.fseg{display:inline-grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:3px;padding:3px;border-radius:10px;background:var(--surface);border:1px solid var(--line);margin:1.3rem 0 1.1rem}
+.fseg button{font:inherit;border:0;background:transparent;border-radius:7px;padding:.5rem 1rem;font-weight:700;color:var(--link);cursor:pointer;font-size:.92rem}
+.fseg button[aria-pressed="true"]{background:var(--bg);color:var(--text);box-shadow:0 0 0 1px var(--line)}
+.fseg button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.type-badge{display:inline-block;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--link);border:1px solid var(--link);border-radius:5px;padding:0 .35rem;margin-left:.45rem;vertical-align:1px;line-height:1.5}
+.grp.nohead{margin-top:.2rem}
+.grp.nohead .rows{border-top:0}
+/* the site name in the header links to Start (same look as before; keyboard focus uses the site’s :focus-visible ring) */
+.brand-link{display:block;color:inherit;text-decoration:none;border-radius:4px}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="top"><div class="top-in">
-  <p class="brand">CPS 845 Lab<small>Fall 2026 · Agile lab guide</small></p>
-  <nav class="tabs" aria-label="Sections"><ul><li><a href="#start"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg><span>Start</span></a></li><li><a href="#weeks"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M6 8.5v7M11 6h9M11 18h9"/></svg><span>Weeks</span></a></li><li><a href="#due"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4.5l3 2"/><path d="M9 2.5h6"/></svg><span>Due</span></a></li><li><a href="#docs"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg><span>Docs</span></a></li><li><a href="#grades"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg><span>Grades</span></a></li></ul></nav>
+  <p class="brand"><a class="brand-link" href="#start">CPS 845 Lab<small>Fall 2026 · Agile lab guide</small></a></p>
+  <nav class="tabs" aria-label="Sections"><ul><li><a href="#start"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg><span>Start</span></a></li><li><a href="#weeks"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M6 8.5v7M11 6h9M11 18h9"/></svg><span>Weeks</span></a></li><li><a href="#due"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4.5l3 2"/><path d="M9 2.5h6"/></svg><span>Due</span></a></li><li><a href="#docs"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg><span>Docs</span></a></li><li><a href="#grades"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg><span>Grades</span></a></li><li><a href="#teach"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4.5h17v11h-17z"/><path d="M12 15.5v4M8 20h8"/><path d="m8 12 3-3 2 2 3-3"/></svg><span>Lessons</span></a></li></ul></nav>
   <button class="theme-btn" id="themeBtn" type="button" aria-label="Switch theme"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
 </div></header>
 <main id="main">
@@ -432,6 +442,20 @@ footer{max-width:1180px;margin:0 auto;padding:1rem 1.25rem 2rem;color:var(--mute
   <div class="narrow"><div class="gcard total-card"><p class="g-head"><span class="g-name">Total</span><span class="g-pct">100%</span></p></div>
   <p class="note late">Late submissions (course outline): 1% of the final mark per day of delay; submissions 5 or more days late receive 0.</p></div>
 </div></section>
+<section id="teach" class="view tab" aria-labelledby="h-teach"><div class="narrow">
+  <p class="kicker">Lab lessons</p>
+  <h1 id="h-teach">Lessons</h1>
+  <p class="lead">Short visual explanations from the lab. Open one and step through it with the Next button or the arrow keys.</p>
+  <div class="fseg" role="group" aria-label="Show lessons" hidden><button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="concept" aria-pressed="false">Concepts</button><button type="button" data-f="technique" aria-pressed="false">Techniques</button></div>
+  <section class="grp nohead"><ul class="rows"><li data-type="concept"><a class="row" href="teach/1-embedding.html"><span class="rt"><span class="t1">1 · How do words become numbers?<span class="type-badge">Concept</span></span><span class="t2">Embeddings: 1D, 2D and 3D, then back into words</span></span><svg class="ic-s chev" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></a></li><li data-type="concept" hidden><a class="row" href="teach/2-homonyms.html"><span class="rt"><span class="t1">2 · How do LLMs tell homonyms apart?<span class="type-badge">Concept</span></span><span class="t2">Attention: the words before “ring” change what it means</span></span><svg class="ic-s chev" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></a></li></ul><p class="rows-note" id="lessons-empty" hidden>No techniques yet.</p></section>
+</div><script>(function(){ /* Lessons filter: All / Concepts / Techniques (rows carry data-type) */
+  var g=document.querySelector("#teach .fseg"); if(!g) return;
+  var rows=[].slice.call(document.querySelectorAll("#teach .rows li")), empty=document.getElementById("lessons-empty");
+  g.addEventListener("click",function(e){ var b=e.target.closest("button"); if(!b) return; var f=b.getAttribute("data-f"), n=0;
+    [].forEach.call(g.querySelectorAll("button"),function(x){x.setAttribute("aria-pressed",x===b?"true":"false");});
+    rows.forEach(function(li){var on=f==="all"||li.getAttribute("data-type")===f; li.hidden=!on; if(on) n++;});
+    empty.textContent=f==="technique"?"No techniques yet.":"No concepts yet."; empty.hidden=n>0; });
+})();</script></section>
 <section id="b-1" class="view detail" data-home="weeks" aria-labelledby="h-b-1">
   <a class="back" href="#weeks"><svg class="ic-s" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg><span>Weeks</span></a>
   <p class="kicker">Week 1 · Fri 18-Sep<span class="now-badge" hidden>This week</span></p>
@@ -505,7 +529,7 @@ footer{max-width:1180px;margin:0 auto;padding:1rem 1.25rem 2rem;color:var(--mute
 </section>
 </main>
 <footer>
-  <p>Website: <a href="https://cps845lab.github.io/">https://cps845lab.github.io/</a> · Files: <a href="https://github.com/cps845lab/cps845lab.github.io">github.com/cps845lab/cps845lab.github.io</a></p>
+  <p>Files: <a href="https://github.com/cps845lab/cps845lab.github.io">github.com/cps845lab/cps845lab.github.io</a></p>
 </footer>
 <script>
 (function(){
@@ -563,7 +587,7 @@ footer{max-width:1180px;margin:0 auto;padding:1rem 1.25rem 2rem;color:var(--mute
   });
 
   // ---- views: #tab or #tab/detail (e.g. #weeks/b-2, #docs/l1, #due/l3)
-  var TABS=['start','weeks','due','docs','grades'], NAME={start:'Start',weeks:'Weeks',due:'Due',docs:'Docs',grades:'Grades'}, HOME={};
+  var TABS=['start','weeks','due','docs','grades','teach'], NAME={start:'Start',weeks:'Weeks',due:'Due',docs:'Docs',grades:'Grades',teach:'Lessons'}, HOME={};
   each('.view.detail',function(v){HOME[v.id]=v.getAttribute('data-home');});
   var WEEKOF={};
   each('.view.detail[data-home="weeks"] .wk-item[data-week]',function(w){WEEKOF['week-'+w.getAttribute('data-week')]=w.closest('.view').id;});
