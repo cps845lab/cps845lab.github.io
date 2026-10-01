@@ -30,13 +30,14 @@
   --sun:#FCD34D; --pig:#C4577B; /* the sun; the pig's arrow */
   --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; /* the pig */
   --ice:#E1F1FA; --glint:#FFFFFF; /* the sled: frozen lake and its shine lines */
+  --brick-ink:#B4543A; --shadow-ink:#5E7A4A; /* words + arrow in the tower's brick colour / the shadow's colour (darker shades: text keeps 3:1 or more) */
 }
 :root[data-theme="dark"]{
   --bg:#0D1520; --surface:#152131; --text:#EDF1F5; --muted:#B3BCC7; --link:#8CCBF5;
   --nav-bg:#07101B; --nav-text:#EDF1F5; --line:#3A4B61; --grid:#1E2D40; --focus:#5BC2F4;
   --no:#FB923C; --mid:#C4B5FD; --yes:#93C5FD; --hl:#FF8FA3; --k:#5EEAD4; --m:#F9A8D4; --w:#BEF264; --grey:#6B7A8C; --trail-past:#C9D1DA; --trail-next:#8E99A6; --other:#FDE047;
   --brick:#9C4A36; --brick-side:#7A3726; --brick-joint:#C9705A; --grass:#27432A; --grass-line:#3C6340; --grass-edge:#6FA35A; --sun:#FCD34D; --pig:#F9A8D4;
-  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; --ice:#13304A; --glint:#3B6488;
+  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; --ice:#13304A; --glint:#3B6488; --brick-ink:#E08A6E; --shadow-ink:#A9BFA0;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -44,7 +45,7 @@
     --nav-bg:#07101B; --nav-text:#EDF1F5; --line:#3A4B61; --grid:#1E2D40; --focus:#5BC2F4;
     --no:#FB923C; --mid:#C4B5FD; --yes:#93C5FD; --hl:#FF8FA3; --k:#5EEAD4; --m:#F9A8D4; --w:#BEF264; --grey:#6B7A8C; --trail-past:#C9D1DA; --trail-next:#8E99A6; --other:#FDE047;
   --brick:#9C4A36; --brick-side:#7A3726; --brick-joint:#C9705A; --grass:#27432A; --grass-line:#3C6340; --grass-edge:#6FA35A; --sun:#FCD34D; --pig:#F9A8D4;
-  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; --ice:#13304A; --glint:#3B6488;
+  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; --ice:#13304A; --glint:#3B6488; --brick-ink:#E08A6E; --shadow-ink:#A9BFA0;
   }
 }
 /* ======================= end of colours ============================== */
@@ -126,6 +127,7 @@ svg.turn{cursor:grab} svg.turn.turning{cursor:grabbing}   /* slide 21: drag to t
 .lb figcaption{color:#fff;margin-top:.6rem;font-weight:700}
 @media (max-width:700px){.lb img{width:92vw}}
 /* ---- deck 1 only (added by build7.py) ---- */
+svg text.f-brick{fill:var(--brick-ink)} svg text.f-shadow{fill:var(--shadow-ink)}
 .halo{paint-order:stroke;stroke:var(--bg);stroke-width:8px;stroke-linejoin:round}
 .grip.pulling{cursor:grabbing} .grip:focus{outline:none} .grip:focus-visible circle:first-child{stroke:var(--focus);stroke-width:4}
 </style>
@@ -204,7 +206,7 @@ var C={no:{s:'s-no',f:'f-no'},mid:{s:'s-mid',f:'f-mid'},yes:{s:'s-yes',f:'f-yes'
 /* SCENES (one click each). id = name used below; sec = section in the */
 /* trail at the top; t = caption. DUR = seconds to animate INTO it.    */
 /* ------------------------------------------------------------------ */
-var SECS=['1D','Scalar vs. vector','1D vector','2D','Vector intuition','3D','The walk','Reverse','Summary','Context'];   /* “Vector intuition” added in session 4 (U21) */   /* Context = the next page (deck 2), never current here */
+var SECS=['1D','Scalar vs. vector','1D vector','2D','Vector intuition','3D','The walk','Reverse','Summary'];   /* “Vector intuition” added in session 4 (U21) */   /* Context = the next page (deck 2), never current here */
 var NEXT_DECK='2-homonyms.html';   /* Next on the last slide (and → / Space) opens deck 2 */
 var T1D='Give each word a number';
 var SC=[
@@ -228,20 +230,20 @@ var SC=[
  {id:'cs1', sec:4, t:'The angle between two vectors shows how similar they are', s:'Cosine similarity: the cosine of that angle, 1 when they point the same way', d:1.6},   /* NEW session 4 (U22) */
  {id:'cs2', sec:4, t:'Why cosine? It measures how much one vector points along the other', s:'In the right triangle the two vectors make, cosine = adjacent ÷ hypotenuse', d:6.5},   /* plays by itself + ↻ Replay (U26) */   /* NEW session 4 (U22) */
  {id:'pg1', sec:4, t:'Shadows of other dimensions', s:'The shadow projects the tower’s axis onto the ground’s axis', d:1.0},   /* from tower-and-pig.html */
- {id:'pg2', sec:4, t:'Swap the tower and the pig for arrows', s:'The same shadow: how much of the grey arrow points along the pink one', d:.8},
+ {id:'pg2', sec:4, t:'Swap the tower and the pig for arrows', s:'The same shadow: how much of the brick-red arrow points along the pink one', d:.8},
  {id:'sled',sec:4, t:'How much of the pull moves the sled?', s:'The more your pull vector lines up with the ground’s axis, the more of it moves the sled', d:.8},
  {id:'g1',  sec:5, t:'masculinity ↔ femininity', s:'Start with one direction of meaning', d:1.8},
  {id:'g2',  sec:5, t:'Adding royal people', s:'Each word gets its own spot on the masculinity ↔ femininity line', d:1.8},
  {id:'g3',  sec:5, t:'Add a second direction: royalty', s:'The space grows, and the words spread apart', d:2.2},
  {id:'g4',  sec:5, t:'Add a third direction: age', s:'Now every word has its own spot. Real models learn hundreds of unlabelled directions; we named these for the picture', d:2.2},
- {id:'k1',  sec:6, t:'A walk through the space', s:'Start at “king”', d:1.6},
- {id:'k2',  sec:6, t:'Every word is an arrow', s:'Man’s arrow points in the “man” direction', d:1.4},
- {id:'k3',  sec:6, t:'− man', s:'Walk backwards along man’s arrow: the “man” part goes, the royalty stays', d:2.4},
- {id:'k4',  sec:6, t:'Woman’s arrow', s:'It points in the “woman” direction', d:1.4},
- {id:'k5',  sec:6, t:'+ woman', s:'Walk along woman’s arrow. We land somewhere… but it’s only numbers', d:3.4},
+ {id:'k1',  sec:6, t:'A walk through the space', s:'Start at “king”', d:2.2},
+ {id:'k2',  sec:6, t:'Every word is an arrow', s:'Man’s arrow points in the “man” direction', d:1.5},
+ {id:'k3',  sec:6, t:'− man', s:'Walk backwards along man’s arrow: the “man” part goes, the royalty stays', d:5.5},
+ {id:'k4',  sec:6, t:'Woman’s arrow', s:'It points in the “woman” direction', d:1.5},
+ {id:'k5',  sec:6, t:'+ woman', s:'Walk along woman’s arrow. We land somewhere… but it’s only numbers', d:5.5},
  {id:'rev', sec:7, t:'We landed near Queen but not on it. Why?', s:'Turn the numbers back into a word: find the nearest word', d:5.2},
  {id:'win', sec:7, t:'Queen has other meanings', s:'Music, performance, slang, insects: each one pulls it a little off course', d:1.0},   /* NEW: winds of meaning */
- {id:'qa',  sec:7, t:'Queen’s own arrow', s:'The walk ends almost where queen’s arrow ends. That’s why the nearest word is queen', d:2.0},
+ {id:'qa',  sec:7, t:'Queen’s own arrow', s:'The walk ends almost where queen’s arrow ends. That’s why the nearest word is queen', d:3.0},
  {id:'pipe',sec:7, t:'Turning numbers back into words', s:'The model embeds words, updates the numbers, then turns them back into words', d:2.2},
  {id:'sum', sec:8, t:'What You Learned', d:2.2}
 ];
@@ -438,7 +440,7 @@ function mkFracR(par){var X=1500,Y=110,g=el('g',{},par),row=el('g',{},g),key='';
   return function(parts){var k=JSON.stringify(parts); if(k===key) return;
     while(row.firstChild) row.removeChild(row.firstChild);
     var items=parts.map(function(p){ if(typeof p==='string'){var t=txt(p,{y:Y+11,'font-size':32,'class':'ink b'},row); return {t:t,w:t.getComputedTextLength()};}
-      var n=txt(p[0],{y:Y-9,'font-size':32,'class':(p[2]||'ink')+' b','text-anchor':'middle'},row), d=txt(p[1],{y:Y+30,'font-size':32,'class':'ink b','text-anchor':'middle'},row), b=el('line',{'class':'s-ink','stroke-width':2.5,y1:Y,y2:Y},row);
+      var n=txt(p[0],{y:Y-9,'font-size':32,'class':(p[2]||'ink')+' b','text-anchor':'middle'},row), d=txt(p[1],{y:Y+30,'font-size':32,'class':(p[3]||'ink')+' b','text-anchor':'middle'},row), b=el('line',{'class':'s-ink','stroke-width':2.5,y1:Y,y2:Y},row);
       return {n:n,d:d,b:b,w:Math.max(n.getComputedTextLength(),d.getComputedTextLength())+8};});   /* p[2] = colour class of the numerator (colour link to the picture) */
     if(!items[0].w) return;   /* not laid out yet: tried again on the next frame */
     key=k; var x=X; for(var i=items.length-1;i>=0;i--){var it=items[i]; x-=it.w; if(it.t) set(it.t,{x:x}); else {set(it.b,{x1:x,x2:x+it.w}); set(it.n,{x:x+it.w/2}); set(it.d,{x:x+it.w/2});} x-=12;}
@@ -487,12 +489,12 @@ op(gPrev,0); var hoverM=null;
 /* world: royalty 0..1, gender −1 (woman) .. +1 (man), age 0..1        */
 /* Numbers are ILLUSTRATIVE (made up for the picture), not from a model.*/
 /* Every word has its own gender number, so no two words share a spot. */
-/* queen is less purely "woman" (−0.50): it also means a chess piece,  */
+/* queen is less purely "woman" (−0.36): it also means a chess piece,  */
 /* a playing card, the band … so the walk lands near it, not on it.     */
 /* ------------------------------------------------------------------ */
 var W3=[
  {w:'man',x:.10,y:.80,z:.80},{w:'woman',x:.12,y:-.80,z:.74},
- {w:'king',x:.90,y:.90,z:.85},{w:'queen',x:.86,y:-.55,z:.67},
+ {w:'king',x:.90,y:.90,z:.85},{w:'queen',x:.93,y:-.36,z:.69},
  {w:'boy',x:.08,y:.25,z:.15},{w:'girl',x:.10,y:-.85,z:.17},
  {w:'prince',x:.85,y:.45,z:.22},{w:'princess',x:.83,y:-.75,z:.24}
 ];
@@ -593,7 +595,7 @@ function drawWind(u,x1,y1,x2,y2,col){
 
 /* slide win: other meanings of “queen” blow through it as winds, one after another.
    up = the side each wind comes from (screen direction from queen); the label names the meaning's “space”. */
-var MEAN=[{n:'Music',up:[.83,-.56]},{n:'Performance',up:[-.45,.89]},{n:'Slang',up:[-.97,.25],r:290},{n:'Insects',up:[1,-.05]}];   /* labels placed clear of every word, arrow and the replay button */
+var MEAN=[{n:'Music',up:[.83,-.56]},{n:'Performance',up:[-.52,.85],r:323},{n:'Slang',up:[-.94,.35],r:358},{n:'Insects',up:[1,.02],r:195}];   /* labels placed clear of every word, arrow and the replay button */
 var MLANE=[-36,-18,0,18,36];
 (function(){
   MEAN.forEach(function(m,j){
@@ -865,7 +867,7 @@ function render(P){
     if(gA<0.01){op(axG.g,0);op(axGd.g,0);}
     set(tMan,{x:gt.x,y:gt.y-16}); set(tWom,{x:gb.x,y:gb.y+36}); op(tMan,IN(P,S.g1,.55,.75)); op(tWom,IN(P,S.g1,.55,.75));
     var re=P3({x:1.15,y:0,z:0}); drawArrow(axR,c0.x,c0.y,re.x,re.y,1); if(cam.wr<0.01) op(axR.g,0);
-    set(tRoy,{x:re.x+6,y:re.y-16}); op(tRoy,R(cam.wr,.7,1));
+    set(tRoy,{x:re.x+6,y:re.y-35});   /* above the tip, clear of queen's ring and queen's own arrow */ op(tRoy,R(cam.wr,.7,1));
     var ae=P3({x:0,y:0,z:1.18}); drawArrow(axA,c0.x,c0.y,ae.x,ae.y,1); if(ag<0.01) op(axA.g,0);
     set(tAge,{x:ae.x-10,y:ae.y-14}); op(tAge,R(ag,.7,1));
     floor.forEach(function(f){var a=P3(f.a),b=P3(f.b); set(f.e,{x1:a.x,y1:a.y,x2:b.x,y2:b.y}); op(f.e,ag*R(cam.wr,.5,1));});
@@ -888,11 +890,11 @@ function render(P){
     var done=[];
     /* obstacles from the walk: arrow segments that are drawn, plus the "− man" / "+ woman" labels */
     var o3_=P3(O), k3_=P3(KING), m3_=P3(MID), l3_=P3(LAND), man3_=P3(MAN), wom3_=P3(WOMAN), segs=[];
-    if(IN(P,S.k1,.15,.6)>.5) segs.push([o3_,k3_]);
-    if(IN(P,S.k2,0,.3)>.5) segs.push([o3_,man3_]);
-    if(IN(P,S.k3,.45,.9)>.5){ segs.push([k3_,m3_]); var lmx=(k3_.x+m3_.x)/2+14, lmy=(k3_.y+m3_.y)/2; done.push({a:lmx,b:lmx+76,y:lmy}); }
-    if(IN(P,S.k4,0,.3)>.5) segs.push([o3_,wom3_]);
-    if(IN(P,S.k5,.45,.9)>.5){ segs.push([m3_,l3_]); var lwx=m3_.x+(l3_.x-m3_.x)*.35, lwy=m3_.y+(l3_.y-m3_.y)*.35-18; done.push({a:lwx-55,b:lwx+55,y:lwy}); }
+    if(IN(P,S.k1,.15,.85)>.5) segs.push([o3_,k3_]);
+    if(IN(P,S.k2,0,1)>.5) segs.push([o3_,man3_]);
+    if(IN(P,S.k3,.727,1)>.5){ segs.push([k3_,m3_]); var lmx=(k3_.x+m3_.x)/2+14, lmy=(k3_.y+m3_.y)/2; done.push({a:lmx,b:lmx+76,y:lmy}); }
+    if(IN(P,S.k4,0,1)>.5) segs.push([o3_,wom3_]);
+    if(IN(P,S.k5,.727,1)>.5){ segs.push([m3_,l3_]); done.push({a:l3_.x+34,b:l3_.x+146,y:l3_.y+10}); }
     function segClash(b){return segs.some(function(sg){for(var k=0;k<=24;k++){var t=k/24, x=lerp(sg[0].x,sg[1].x,t), y=lerp(sg[0].y,sg[1].y,t);
       if(x>b.a-4 && x<b.b+4 && y>b.y-24 && y<b.y+8) return true;} return false;});}
     labs.forEach(function(w){
@@ -910,16 +912,16 @@ function render(P){
     });
     /* the walk */
     var o3=P3(O), k3=P3(KING), m3=P3(MID), l3=P3(LAND), man3=P3(MAN), wom3=P3(WOMAN), q3=P3(QUEEN);
-    drawArrow(aKing,o3.x,o3.y,k3.x,k3.y,IN(P,S.k1,.15,.6));
-    drawArrow(ghostMan,o3.x,o3.y,man3.x,man3.y,IN(P,S.k2,0,.3));
-    drawArrow(aMan,k3.x,k3.y,m3.x,m3.y,IN(P,S.k3,.45,.9));
-    set(labMan,{x:(k3.x+m3.x)/2+14,y:(k3.y+m3.y)/2}); op(labMan,IN(P,S.k3,.6,.9));
-    set(midDot,{cx:m3.x,cy:m3.y}); op(midDot,IN(P,S.k3,.85,.95)); set(midLab,{x:m3.x-18,y:m3.y-50}); set(midBox,{x:m3.x-18-120,y:m3.y-72}); op(midG,IN(P,S.k3,.85,.95));
-    drawArrow(ghostWoman,o3.x,o3.y,wom3.x,wom3.y,IN(P,S.k4,0,.3));
-    drawArrow(aWoman,m3.x,m3.y,l3.x,l3.y,IN(P,S.k5,.45,.9));       /* after the wind has shown the direction */
-    set(labWoman,{x:m3.x+(l3.x-m3.x)*.35,y:m3.y+(l3.y-m3.y)*.35-18}); op(labWoman,IN(P,S.k5,.6,.9));
+    drawArrow(aKing,o3.x,o3.y,k3.x,k3.y,IN(P,S.k1,.15,.85));
+    drawArrow(ghostMan,o3.x,o3.y,man3.x,man3.y,IN(P,S.k2,0,1));
+    drawArrow(aMan,k3.x,k3.y,m3.x,m3.y,IN(P,S.k3,.727,1));
+    set(labMan,{x:(k3.x+m3.x)/2+14,y:(k3.y+m3.y)/2}); op(labMan,IN(P,S.k3,.85,1));
+    set(midDot,{cx:m3.x,cy:m3.y}); op(midDot,IN(P,S.k3,.97,1)); set(midLab,{x:m3.x-18,y:m3.y-50}); set(midBox,{x:m3.x-18-120,y:m3.y-72}); op(midG,IN(P,S.k3,.97,1));
+    drawArrow(ghostWoman,o3.x,o3.y,wom3.x,wom3.y,IN(P,S.k4,0,1));
+    drawArrow(aWoman,m3.x,m3.y,l3.x,l3.y,IN(P,S.k5,.727,1));       /* after the wind has shown the direction */
+    set(labWoman,{x:l3.x+34,y:l3.y+10}); labWoman.setAttribute('text-anchor','start');   /* at the arrow tip (like “pig”), clear of queen's arrow */ op(labWoman,IN(P,S.k5,.85,1));
     set(landDot,{cx:l3.x,cy:l3.y}); set(landQ,{x:l3.x,y:l3.y+9});
-    op(landG,IN(P,S.k5,.85,1)*(1-IN(P,S.rev,.55,.8)));
+    op(landG,IN(P,S.k5,.97,1)*(1-IN(P,S.rev,.55,.8)));
     set(landEnd,{cx:l3.x,cy:l3.y}); op(landEnd,IN(P,S.qa,.1,.4));
     /* wind (own clock) */
     var wu=fxU('wind',WIND,now);
@@ -951,8 +953,8 @@ function render(P){
       set(c.l,{x1:l3.x,y1:l3.y,x2:p.x,y2:p.y}); set(c.t,{x:(l3.x+p.x)/2+8,y:(l3.y+p.y)/2-8}); op(c.l,a); op(c.t,i===0?a*(1-IN(P,S.rev,.6,.8)):a);});
     var qa=IN(P,S.rev,.55,.85); set(queenRing,{cx:q3.x,cy:q3.y}); op(queenRing,qa);
     QUEEN.t.setAttribute('class','b '+(qa>.5?'f-link':'ink')); QUEEN.t.setAttribute('font-size',30+10*qa);
-    op(eK,IN(P,S.k1,.1,.3)); op(eM,IN(P,S.k3,0,.2)); op(eW,IN(P,S.k5,.45,.6));
-    op(eQ,IN(P,S.k5,.85,1)); eQ.style.display=P<AT(S.rev)-1+.55?'':'none'; op(eA,IN(P,S.rev,.6,.85)); eA.style.display=P<AT(S.rev)-1+.55?'none':'';
+    op(eK,IN(P,S.k1,.1,.3)); op(eM,IN(P,S.k3,0,.2)); op(eW,IN(P,S.k5,.727,.85));
+    op(eQ,IN(P,S.k5,.97,1)); eQ.style.display=P<AT(S.rev)-1+.55?'':'none'; op(eA,IN(P,S.rev,.6,.85)); eA.style.display=P<AT(S.rev)-1+.55?'none':'';
     op(eqNote,IN(P,S.rev,.7,.9)*(1-IN(P,S.qa,0,.3)));
     /* qa: the walk turns grey, queen gets its own blue arrow */
     var gq=IN(P,S.qa,0,.3)>.5;
@@ -1118,7 +1120,7 @@ el('circle',{cx:28,cy:-38,r:2.8,style:'fill:var(--pig-eye)'},pigIn); el('circle'
 el('ellipse',{cx:25,cy:-27,rx:4.5,ry:2.6,style:'fill:var(--pig-cheek)',opacity:.8},pigIn);
 var PIG_SC=.9, PIG_H=61*.9/480, PIG_BACK=41*.9/480, PIG_FRONT=45*.9/480;   /* world size of the sprite (height, tail side, nose side) */
 /* labels + readout (top right, off the picture) */
-var labT=txt('tower',{'font-size':26,'class':'mut b','text-anchor':'middle'},gLab), labS=txt('shadow',{'font-size':26,'class':'mut b','text-anchor':'middle'},gLab);
+var labT=txt('tower',{'font-size':26,'class':'f-brick b','text-anchor':'middle'},gLab), labS=txt('shadow',{'font-size':26,'class':'f-shadow b','text-anchor':'middle'},gLab);
 var frT=mkFracR(gUI);
 /* ---- tipping the tower with the mouse (U23): a ring on its top and its dotted path from 90° to 0°.
    A drag that starts on the ring, the path or the tower tips it only (the pointer is captured, so the view never turns);
@@ -1208,14 +1210,14 @@ function draw(now){
   var pp=[]; for(var a=0;a<=90;a+=3) {var q=ringAt(a); pp.push(q.x.toFixed(1)+','+q.y.toFixed(1));}
   set(tPath,{points:pp.join(' ')}); set(tPathHit,{points:pp.join(' ')});
   var rp=ringAt(st.th); set(tRing,{cx:rp.x,cy:rp.y}); set(tHit,{cx:rp.x,cy:rp.y});
-  frT(['cos('+Math.round(st.th)+'°) =',['shadow','tower'],'= '+c.toFixed(2)]);
+  frT(['cos('+Math.round(st.th)+'°) =',['shadow','tower','f-shadow','f-brick'],'= '+c.toFixed(2)]);
 }
 /* ---- slide pg2: grey arrow = the tower, pink arrow = the pig, drawn in the same space ---- */
 var gArr=el('g',{style:'display:none'}); root.insertBefore(gArr,gAx);
 function mkA(tok,w){var g=el('g',{},gArr); return {l:el('line',{style:'stroke:var('+tok+')','stroke-width':w,'stroke-linecap':'round'},g),h:el('path',{style:'fill:var('+tok+')'},g),w:w};}
 function drawA(a,A,B){var p=PJ(A),q=PJ(B),dx=q.x-p.x,dy=q.y-p.y,Ln=Math.hypot(dx,dy)||1,ux=dx/Ln,uy=dy/Ln,hl=Math.min(22+a.w,Ln*.6),hw=hl*.45,bx=q.x-ux*hl,by=q.y-uy*hl;
   set(a.l,{x1:p.x,y1:p.y,x2:q.x-ux*hl*.8,y2:q.y-uy*hl*.8}); set(a.h,{d:'M'+q.x+' '+q.y+'L'+(bx-uy*hw)+' '+(by+ux*hw)+'L'+(bx+uy*hw)+' '+(by-ux*hw)+'Z'});}
-var aPig=mkA('--pig',10), aTow=mkA('--grey',12);
+var aPig=mkA('--pig',10), aTow=mkA('--brick-ink',12);
 var labP=txt('pig',{'font-size':26,'class':'b',style:'fill:var(--pig)'},gArr);
 var morph=null;   /* {t0}: tower → grey arrow, pig → pink arrow, 1.5 s, after arriving with Next and on ↻ Start again */
 function drawArrows(now,th,c){
@@ -1404,14 +1406,15 @@ function arrived(t,fwd,delay){
   if(!turnSlide(t)) viewHome(400);   /* the turned view is kept on 21–29 and eases back when leaving them */
   if(t===S.v3-1){kst.dx=0; kst.len=120; kst.dirT=0; kst.lenT=0;}
   if(t===S.gps1-1 && !reduce) fx.pulse=now; else if(t!==S.gps1-1) fx.pulse=null;
-  if(fwd && !reduce && (t===S.k2-1||t===S.k3-1||t===S.k5-1)) fx.wind=now;
+  if(fwd && !reduce && (t===S.k2-1||t===S.k3-1||t===S.k5-1)) fx.wind=t===S.k2-1?now+(DUR[t]+1)*1000:now;   /* k2: arrow 1.5 s, pause 1 s, then the wind; k3/k5: wind first, the walk follows after a 1 s pause */
   if(fwd && !reduce && t===S.win-1) fx.winds=now+DUR[t]*1000;   /* winds start once the slide has arrived */
 }
 function go(t){
   t=Math.min(N-1,t);   /* past the last slide: next topic */
   t=Math.max(0,t); if(t===cur && !anim) return;
   if(!lb.hidden) closeLB();
-  var fwd=t===cur+1 && Math.abs(P-cur)<1e-6;
+  var fwd=t===cur+1 && (Math.abs(P-cur)<1e-6 || (anim && anim.lin && anim.to===cur));
+  if(fwd && Math.abs(P-cur)>=1e-6){ anim=null; P=cur; render(P); lastP=P; }   /* → during a slide's own move: finish it, then play the next slide at full length */
   var dur=reduce?.25:(fwd?DUR[t]:(t<cur?.6:.9));
   anim={from:P,to:t,start:performance.now(),dur:dur*1000,lin:fwd};
   arrived(t,fwd,t===S.gps1-1?dur*300:0);
