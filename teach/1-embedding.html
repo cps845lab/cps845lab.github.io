@@ -30,14 +30,14 @@
   --sun:#FCD34D; --pig:#C4577B; /* the sun; the pig's arrow */
   --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; /* the pig */
   --ice:#E1F1FA; --glint:#FFFFFF; /* the sled: frozen lake and its shine lines */
-  --brick-ink:#B4543A; --shadow-ink:#5E7A4A; /* words + arrow in the tower's brick colour / the shadow's colour (darker shades: text keeps 3:1 or more) */
+  --brick-ink:#B4543A; --shadow-ink:#5E7A4A; --plane:rgba(100,125,160,.10); /* words + arrow in the tower's brick colour / the shadow's colour (darker shades: text keeps 3:1 or more) */
 }
 :root[data-theme="dark"]{
   --bg:#0D1520; --surface:#152131; --text:#EDF1F5; --muted:#B3BCC7; --link:#8CCBF5;
   --nav-bg:#07101B; --nav-text:#EDF1F5; --line:#3A4B61; --grid:#1E2D40; --focus:#5BC2F4;
   --no:#FB923C; --mid:#C4B5FD; --yes:#93C5FD; --hl:#FF8FA3; --k:#5EEAD4; --m:#F9A8D4; --w:#BEF264; --grey:#6B7A8C; --trail-past:#C9D1DA; --trail-next:#8E99A6; --other:#FDE047;
   --brick:#9C4A36; --brick-side:#7A3726; --brick-joint:#C9705A; --grass:#27432A; --grass-line:#3C6340; --grass-edge:#6FA35A; --sun:#FCD34D; --pig:#F9A8D4;
-  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; --ice:#13304A; --glint:#3B6488; --brick-ink:#E08A6E; --shadow-ink:#A9BFA0;
+  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; --ice:#13304A; --glint:#3B6488; --brick-ink:#E08A6E; --shadow-ink:#A9BFA0; --plane:rgba(150,175,210,.10);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -45,7 +45,7 @@
     --nav-bg:#07101B; --nav-text:#EDF1F5; --line:#3A4B61; --grid:#1E2D40; --focus:#5BC2F4;
     --no:#FB923C; --mid:#C4B5FD; --yes:#93C5FD; --hl:#FF8FA3; --k:#5EEAD4; --m:#F9A8D4; --w:#BEF264; --grey:#6B7A8C; --trail-past:#C9D1DA; --trail-next:#8E99A6; --other:#FDE047;
   --brick:#9C4A36; --brick-side:#7A3726; --brick-joint:#C9705A; --grass:#27432A; --grass-line:#3C6340; --grass-edge:#6FA35A; --sun:#FCD34D; --pig:#F9A8D4;
-  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; --ice:#13304A; --glint:#3B6488; --brick-ink:#E08A6E; --shadow-ink:#A9BFA0;
+  --pig-line:#C4577B; --pig-body:#F7BACB; --pig-leg:#EFA3BA; --pig-ear:#F29AB5; --pig-cheek:#F28FAF; --pig-eye:#1A1A1A; --pig-eye-hi:#FFFFFF; --pig-shadow:#000000; --ice:#13304A; --glint:#3B6488; --brick-ink:#E08A6E; --shadow-ink:#A9BFA0; --plane:rgba(150,175,210,.10);
   }
 }
 /* ======================= end of colours ============================== */
@@ -101,7 +101,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--focus);outline-offs
 /* ---- SVG styles (colours come from the variables above) ---- */
 svg text{font-family:"Atkinson Hyperlegible",system-ui,Arial,sans-serif;fill:var(--text)}
 .ink{fill:var(--text)} .mut{fill:var(--muted)} .f-no{fill:var(--no)} .f-mid{fill:var(--mid)} .f-yes{fill:var(--yes)} .f-link{fill:var(--link)} .f-bg{fill:var(--bg)} .f-surf{fill:var(--surface)} .f-hl{fill:var(--hl)}
-.s-ink{stroke:var(--text)} .s-mut{stroke:var(--muted)} .s-line{stroke:var(--line)} .s-grid{stroke:var(--grid)}
+.s-ink{stroke:var(--text)} .s-mut{stroke:var(--muted)} .s-line{stroke:var(--line)} .s-grid{stroke:var(--grid)} .f-plane{fill:var(--plane)}
 .f-k{fill:var(--k)} .f-m{fill:var(--m)} .f-w{fill:var(--w)} .s-k{stroke:var(--k)} .s-m{stroke:var(--m)} .s-w{stroke:var(--w)} .s-bg{stroke:var(--bg)}
 svg text.f-k{fill:var(--k)} svg text.f-m{fill:var(--m)} svg text.f-w{fill:var(--w)}
 .s-no{stroke:var(--no)} .s-mid{stroke:var(--mid)} .s-yes{stroke:var(--yes)} .s-link{stroke:var(--link)} .s-hl{stroke:var(--hl)}
@@ -211,29 +211,31 @@ var NEXT_DECK='2-homonyms.html';   /* Next on the last slide (and → / Space) o
 var T1D='Give each word a number';
 var SC=[
  {id:'title', sec:-1, t:'', d:0},
+ {id:'lo', sec:-1, t:'Questions we will answer', d:1.0},   /* NEW session 6: questions the deck answers (text only, no animation) */
  {id:'w1',  sec:0, t:'Take Yes & No', s:'Two words with opposite meanings', d:1.4},   /* no, yes */
  {id:'w2',  sec:0, t:'Map them a number', s:'no → −1, yes → +1', d:2.2},   /* number line + arrows no → −1, yes → +1 */
- {id:'w3',  sec:0, t:'Words in between get numbers in between', s:'maybe sits halfway: 0', d:2.0},   /* maybe + its 0 appear, then the arrow maybe → 0 */
- {id:'w4',  sec:0, t:'We have now created the yes-ness axis', s:'One line, from no (−1) to yes (+1)', d:2.6},   /* axis line draws through the dots, then no/maybe/yes squish (no “mostly” words) */
+ {id:'w3',  sec:0, t:'We have now created the yes-ness axis', s:'“Certainty axis” works as well', d:2.6},   /* maybe + its 0 appear, then the arrow maybe → 0 */
+ {id:'w4',  sec:0, t:'Words in between get numbers in between', s:'maybe sits halfway: 0', d:3.9},   /* axis line draws through the dots, then no/maybe/yes squish (no “mostly” words) */
  {id:'w5',  sec:0, t:'Embedding words onto the yes-ness axis', s:'Each word becomes one number: its spot on the line', d:3.6},   /* mostly no/yes + WORDS on top, squish down, WORD EMBEDDINGS pushed to the numbers */
- {id:'gps1',sec:1, t:'A scalar is just an amount', s:'GPS says you are here, moving at 5 km/h. But where to?', d:1.1},
- {id:'gps2',sec:1, t:'A vector adds a direction', s:'5 km/h, heading NE. Now you can orient yourself', d:1.5},
- {id:'v1',  sec:2, t:'1-D vector space of yes-ness', s:'Every word is an arrow from 0: left = no, right = yes', d:1.6},
- {id:'v2',  sec:2, t:'Direction and magnitude change meaning', s:'Direction says yes or no. Length says how certain', d:1.8},
+ {id:'gps1',sec:1, t:'A scalar is just an amount', s:'Speed is a scalar: has magnitude but no direction', d:1.1},
+ {id:'gps2',sec:1, t:'A vector adds a direction', s:'Now you can orient yourself', d:1.5},
+ {id:'v1',  sec:2, t:'1-D vector space of yes-ness', s:'Every vector has direction and magnitude', d:1.6},
+ {id:'v2',  sec:2, t:'Direction and magnitude change meaning', s:'Every word is an arrow from 0', d:1.8},
  {id:'v3',  sec:2, t:'Direction and magnitude change meaning', s:'Try it: drag the dot, pull the arrow', d:1.4},
  {id:'m1',  sec:3, t:'Placing memes on the yes-ness axis', s:'Some share a spot: “Jeremiah Johnson Nod” and “Shut up and take my money” are both +1', d:2.6},
- {id:'m2',  sec:3, t:'Add another axis: intensity', s:'A second number: how strongly the meme says it', d:1.4},
+ {id:'m2',  sec:3, t:'Add another axis: intensity', s:'How intensely is the emotion expressed?', d:1.4},
  {id:'m3',  sec:3, t:'Memes that sat together on one line pull apart', s:'With two numbers, “Jeremiah Johnson Nod” and “take my money” no longer share a spot', d:2.2},
- {id:'m4',  sec:3, t:'Each arrow to meme shows strength and intensity of yes-ness', s:'Left/right = how yes, up = how intense; the arrow shows both', d:2.4},
  {id:'m5',  sec:3, t:'Look only at intensity: opposite ends of the yes-ness axis land on the same spot', s:'Ignore yes-ness, and opposites can look the same', d:2.4},   /* NEW: collapse onto intensity */
  {id:'m6',  sec:3, t:'Bring yes-ness back: in 2D they are far apart again', s:'Which directions you look at decides what is close', d:2.0},                                 /* NEW: back to 2D */
- {id:'cs1', sec:4, t:'The angle between two vectors shows how similar they are', s:'Cosine similarity: the cosine of that angle, 1 when they point the same way', d:1.6},   /* NEW session 4 (U22) */
- {id:'cs2', sec:4, t:'Why cosine? It measures how much one vector points along the other', s:'In the right triangle the two vectors make, cosine = adjacent ÷ hypotenuse', d:6.5},   /* plays by itself + ↻ Replay (U26) */   /* NEW session 4 (U22) */
- {id:'pg1', sec:4, t:'Shadows of other dimensions', s:'The shadow projects the tower’s axis onto the ground’s axis', d:1.0},   /* from tower-and-pig.html */
+ {id:'m4',  sec:3, t:'Each arrow to meme shows strength and intensity of yes-ness', s:'Left/right = how yes, up = how intense; the arrow shows both', d:2.4},
+ {id:'cs1', sec:4, t:'A smaller angle = more similar meanings', s:'Vectors give direction, useful for calculating angles', d:1.6},   /* NEW session 4 (U22) */
+ {id:'cs2', sec:4, t:'Why cosine?', s:'It focuses on direction, not magnitude', d:6.5},
+ {id:'cs3', sec:4, t:'Double the length, same cosine', s:'Length of vectors is not important when measuring direction, only the angle is relevant', d:5.0},   /* NEW session 6: zoom out, then take my money doubles (plays by itself + ↻ Replay) */   /* plays by itself + ↻ Replay (U26) */   /* NEW session 4 (U22) */
+ {id:'pg1', sec:4, t:'Shadows of other dimensions', s:'The shadow shows how much of the tower lies along the ground’s axis', d:1.0},   /* from tower-and-pig.html */
  {id:'pg2', sec:4, t:'Swap the tower and the pig for arrows', s:'The same shadow: how much of the brick-red arrow points along the pink one', d:.8},
  {id:'sled',sec:4, t:'How much of the pull moves the sled?', s:'The more your pull vector lines up with the ground’s axis, the more of it moves the sled', d:.8},
- {id:'g1',  sec:5, t:'masculinity ↔ femininity', s:'Start with one direction of meaning', d:1.8},
- {id:'g2',  sec:5, t:'Adding royal people', s:'Each word gets its own spot on the masculinity ↔ femininity line', d:1.8},
+ {id:'g1',  sec:5, t:'masculinity ↔ femininity', s:'Start with one axis of meaning', d:1.8},
+ {id:'g2',  sec:5, t:'Adding more words', s:'Some words are associated with more masculinity than others', d:1.8},
  {id:'g3',  sec:5, t:'Add a second direction: royalty', s:'The space grows, and the words spread apart', d:2.2},
  {id:'g4',  sec:5, t:'Add a third direction: age', s:'Now every word has its own spot. Real models learn hundreds of unlabelled directions; we named these for the picture', d:2.2},
  {id:'k1',  sec:6, t:'A walk through the space', s:'Start at “king”', d:2.2},
@@ -314,8 +316,8 @@ var ROWS=[{w:'yes',x:1,c:'yes'},{w:'mostly yes',x:.5,c:'yes'},{w:'maybe',x:0,c:'
 var vGuide=el('line',{x1:XA(0),x2:XA(0),y1:LY1+85,y2:LY1+110+4*52+25,'class':'s-line','stroke-width':2,'stroke-dasharray':'6 6'},g1v);
 ROWS.forEach(function(r,i){
   var y=LY1+110+i*52;
-  if(r.x===0){ r.dot=el('circle',{cx:XA(0),cy:y,r:9,'class':'f-mid'},g1v); r.t=txt('maybe  0',{x:XA(0)+24,y:y+9,'font-size':26,'class':'b f-mid'},g1v); }
-  else { r.a=mkArrow(C[r.c],g1v,6); r.t=txt(r.w+'  '+fmt(r.x),{x:XA(r.x)+(r.x>0?26:-26),y:y+9,'font-size':26,'class':'b f-'+r.c,'text-anchor':r.x>0?'start':'end'},g1v); }
+  if(r.x===0){ r.dot=el('circle',{cx:XA(0),cy:y,r:9,'class':'f-mid'},g1v); r.t=txt('maybe = [0]',{x:XA(0)+24,y:y+9,'font-size':26,'class':'b f-mid'},g1v); }
+  else { r.a=mkArrow(C[r.c],g1v,6); r.t=txt(r.w+' = ['+fmt(r.x)+']',{x:XA(r.x)+(r.x>0?26:-26),y:y+9,'font-size':26,'class':'b f-'+r.c,'text-anchor':r.x>0?'start':'end'},g1v); }
   r.t.setAttribute('xml:space','preserve'); r.y=y;
 });
 var cards=[], KC={}, kst={dx:0,len:120,dirT:0,lenT:0};   /* key-card state (reset on every arrival at slide v3) */
@@ -383,7 +385,7 @@ var gpsQ=txt('Where am I going?',{x:800,y:840,'text-anchor':'middle','font-size'
 var M=[
  {k:'michael',  x:-1,  y:1,   c:'no',  cx:380, cy:190, w:190, name:'NO GOD PLEASE NO'},
  {k:'fry',      x:1,   y:1,   c:'yes', cx:1220,cy:195, w:205, name:'Shut up and take my money'},
- {k:'gatsby',   x:.8,  y:.75, c:'yes', cx:1370,cy:310, w:190, lab:'Great Gatsby toast', name:'Great Gatsby toast'},
+ {k:'gatsby',   x:1,   y:.75, c:'yes', cx:1475,cy:310, w:190, lab:'Great Gatsby toast', name:'Great Gatsby toast'},
  {k:'kombucha', x:.1,  y:.5,  c:'mid', cx:900,cy:390, w:175, lab:'Kombucha Girl', above:1, name:'Kombucha Girl'},
  {k:'drake_no', x:-.8, y:.45, c:'no',  cx:455, cy:520, w:118, lab:'Drake disapproving', above:1, name:'Drake disapproving'},
  {k:'pirate',   x:-.2, y:.35, c:'mid', cx:692,cy:400, w:175, name:'Well yes, but actually no'},
@@ -429,7 +431,7 @@ g2.insertBefore(xDim,g2thumbs);
   });
   M.forEach(function(m){ m.from=el('line',{'class':'s-'+m.c,'stroke-width':2,'stroke-dasharray':'4 6'},g2); g2.insertBefore(m.from,g2thumbs); });})();
 var clNote=txt('Far apart on yes-ness, side by side on intensity',{x:X2(0),y:Y2(1)+80,'text-anchor':'middle','font-size':22,'class':'f-hl b'},g2);
-function memeSlide(){return cur>=S.m1-1 && cur<=S.m6-1;}
+function memeSlide(){return cur>=S.m1-1 && cur<=Math.max(S.m6,S.m4)-1;}
 /* ------------------------------------------------------------------ */
 /* Vector intuition, slides cs1 + cs2 (session 4, U22–U25)             */
 /* readout as a fraction at the top right (U23–U25): bold “cos(angle) = num over den = value”, “angle N°” below, regular */
@@ -446,39 +448,52 @@ function mkFracR(par){var X=1500,Y=110,g=el('g',{},par),row=el('g',{},g),key='';
     key=k; var x=X; for(var i=items.length-1;i>=0;i--){var it=items[i]; x-=it.w; if(it.t) set(it.t,{x:x}); else {set(it.b,{x1:x,x2:x+it.w}); set(it.n,{x:x+it.w/2}); set(it.d,{x:x+it.w/2});} x-=12;}
   };}
 /* cs1: the angle between “Shut up and take my money” (1, 1) and “Jeremiah Johnson Nod” (1, 0.15): 36.5°, drawn 38° (x and y scales differ) */
+var PICK=['fry','gatsby','kombucha','michael'], SEL='fry', CMP={};   /* cs1 picks (session 6) */
 var gCos1=el('g'), gCos1a=el('g',{},gCos1);   /* gCos1a = the arc + “≈ 37°”, handed over to the moving copy on the way to cs2 */ op(gCos1,0);
 (function(){var a1=Math.atan2(90,550), a2=Math.atan2(600,550), r=170, p=[]; for(var i=0;i<=30;i++){var a=a1+(a2-a1)*i/30; p.push((X2(0)+r*Math.cos(a)).toFixed(1)+','+(LY2-r*Math.sin(a)).toFixed(1));}
   el('polyline',{points:p.join(' '),fill:'none','class':'s-ink','stroke-width':3},gCos1a);
   var am=(a1+a2)/2; txt('≈ 37°',{x:X2(0)+232*Math.cos(am),y:LY2-232*Math.sin(am)+10,'font-size':30,'class':'ink b halo','text-anchor':'middle'},gCos1a);
-  txt('angle ≈ 37°',{x:90,y:100,'font-size':34,'class':'ink b'},gCos1); txt('cosine similarity ≈ 0.8',{x:90,y:146,'font-size':28,'class':'mut'},gCos1);})();
+  var g=el('g',{},gCos1); txt('angle ≈ 37°',{x:90,y:520,'font-size':34,'class':'ink b'},g); txt('cosine similarity ≈ 0.8',{x:90,y:566,'font-size':28,'class':'mut'},g); CMP.fry=g;   /* readout moved below NO GOD PLEASE NO's picture (it stays on this slide now) */})();
+/* cs1 picks (session 6): angle with Nod measured on the picture (pixels), cosine of that angle */
+[['gatsby',550,450,'30°','0.87'],['kombucha',55,300,'70°','0.34'],['michael',-550,600,'123°','−0.54']].forEach(function(q){
+  var g=el('g',{},gCos1), a1=Math.atan2(90,550), a2=Math.atan2(q[2],q[1]), r=170, p=[]; for(var i=0;i<=40;i++){var a=a1+(a2-a1)*i/40; p.push((X2(0)+r*Math.cos(a)).toFixed(1)+','+(LY2-r*Math.sin(a)).toFixed(1));}
+  el('polyline',{points:p.join(' '),fill:'none','class':'s-ink','stroke-width':3},g); var am=(a1+a2)/2;
+  txt('≈ '+q[3],{x:X2(0)+232*Math.cos(am),y:LY2-232*Math.sin(am)+10,'font-size':30,'class':'ink b halo','text-anchor':'middle'},g);
+  txt('angle ≈ '+q[3],{x:90,y:520,'font-size':34,'class':'ink b'},g); txt('cosine similarity ≈ '+q[4],{x:90,y:566,'font-size':28,'class':'mut'},g); CMP[q[0]]=g;});
+var cosHint=txt('Click an arrow to compare it with Jeremiah Johnson Nod',{x:90,y:862,'font-size':24,'class':'mut'},gCos1);
 /* cs2: the same two, turned so Nod lies flat like the ground on the next slide; a 3-4-5 triangle (37°), same origin as the tower */
 var gCos2=el('g'); op(gCos2,0);
-(function(){var O=[560,730], U=100, T=[O[0]+4*U,O[1]-3*U], k={s:'s-yes',f:'f-yes'};
-  el('line',{x1:O[0],y1:O[1]+14,x2:T[0],y2:O[1]+14,'class':'s-link','stroke-width':12,'stroke-linecap':'round',opacity:.9},gCos2);   /* adjacent (the shadow) */
-  el('line',{x1:T[0],y1:T[1]+6,x2:T[0],y2:O[1]-4,style:'stroke:var(--other)','stroke-width':2.5,'stroke-dasharray':'8 8'},gCos2);   /* drop line in the sun-ray colour */
-  el('path',{d:'M'+(T[0]-22)+' '+O[1]+' V'+(O[1]-22)+' H'+T[0],fill:'none','class':'s-mut','stroke-width':2},gCos2);
-  txt('hypotenuse = 5',{x:735,y:540,'font-size':28,'class':'ink b halo','text-anchor':'end'},gCos2);
-  txt('adjacent = 4',{x:(O[0]+T[0])/2,y:O[1]+62,'font-size':28,'class':'f-link b halo','text-anchor':'middle'},gCos2);
-})();
+/* cs2/cs3 (session 6): the arrows keep their slide-19 lengths; “take my money” (814 px) is the hypotenuse, its shadow along Nod's direction is the adjacent side (0.8 × 814), longer than Nod's own arrow (557 px): only Nod's direction counts */
+var OC=[330,800], LF=Math.hypot(550,600), CA=.8, SA=.6;
+var tAdj=el('line',{'class':'s-link','stroke-width':12,'stroke-linecap':'round',opacity:.9},gCos2);   /* adjacent (the shadow) */
+var tDrop=el('line',{style:'stroke:var(--other)','stroke-width':2.5,'stroke-dasharray':'8 8'},gCos2);   /* drop line in the sun-ray colour */
+var tRA=el('path',{fill:'none','class':'s-mut','stroke-width':2},gCos2);
+var tHyp=txt('hypotenuse = 5',{'font-size':28,'class':'ink b halo','text-anchor':'end'},gCos2);
+var tAdjL=txt('adjacent = 4',{'font-size':28,'class':'f-link b halo','text-anchor':'middle'},gCos2);
+function layTri(z,g,done){var O=OC, L=LF*z*g, T=[O[0]+L*CA,O[1]-L*SA];   /* z = zoom (cs3: 1 → ½), g = growth of the hypotenuse (cs3: 1 → 2) */
+  set(tAdj,{x1:O[0],y1:O[1]+14,x2:T[0],y2:O[1]+14}); set(tDrop,{x1:T[0],y1:T[1]+6,x2:T[0],y2:O[1]-4});
+  set(tRA,{d:'M'+(T[0]-22)+' '+O[1]+' V'+(O[1]-22)+' H'+T[0]});
+  set(tHyp,{x:O[0]+L*CA*.5-18,y:O[1]-L*SA*.5-14}); tHyp.textContent='hypotenuse = '+(done?'10':'5');
+  set(tAdjL,{x:(O[0]+T[0])/2,y:O[1]+62}); tAdjL.textContent='adjacent = '+(done?'8':'4');}
 var frC=mkFracR(gCos2);
 /* the two arrows, their pictures and the angle, drawn on the way from cs1 to cs2 (same look as the 2D slide at the start, slide 19's at the end) */
 var gMv=el('g'); op(gMv,0);
-var MV=[{k:'fry',a0:Math.atan2(600,550),l0:Math.hypot(550,600),a1:Math.atan2(3,4),l1:500,c0:[1220,195],w0:205,c1:function(h){return [984+85,310+h/2];},w1:170},
-        {k:'nod',a0:Math.atan2(90,550),l0:Math.hypot(90,550),a1:0,l1:590,c0:[1445,650],w0:140,c1:function(h){return [1170+55,680+h/2];},w1:110}];
+var MV=[{k:'fry',a0:Math.atan2(600,550),l0:Math.hypot(550,600),a1:Math.atan2(3,4),l1:Math.hypot(550,600),c0:[1220,195],w0:205,w1:170,up:1},   /* same length on cs2 (session 6) */
+        {k:'nod',a0:Math.atan2(90,550),l0:Math.hypot(90,550),a1:0,l1:Math.hypot(90,550),c0:[1445,650],w0:140,w1:110}];
 MV.forEach(function(m){var t=THUMBS[m.k]; m.ar_=t.h/t.w; m.halo=el('line',{'class':'s-bg','stroke-width':11,'stroke-linecap':'round'},gMv); m.a=mkArrow({s:'s-yes',f:'f-yes'},gMv,4);
   m.img=el('image',{href:t.uri,preserveAspectRatio:'xMidYMid slice'},gMv); m.fr=el('rect',{rx:4,fill:'none','class':'s-yes','stroke-width':4},gMv);});
 var mvArc=el('polyline',{fill:'none','class':'s-ink','stroke-width':3},gMv), mvLab=txt('',{'class':'ink b halo','text-anchor':'middle'},gMv);
-function drawMv(km,fade){   /* km = 0 (slide 18's place) … 1 (slide 19's place); fade = how far the 2D picture has faded */
-  var O=[lerp(X2(0),560,km),lerp(LY2,730,km)], ang=[];
-  MV.forEach(function(m){var a=lerp(m.a0,m.a1,km), l=lerp(m.l0,m.l1,km), x=O[0]+l*Math.cos(a), y=O[1]-l*Math.sin(a); ang.push(a);
+function drawMv(km,fade,z,g){ z=z||1; g=g||1;   /* z, g: cs3 zoom and growth of take my money */   /* km = 0 (slide 18's place) … 1 (slide 19's place); fade = how far the 2D picture has faded */
+  var O=[lerp(X2(0),OC[0],km),lerp(LY2,OC[1],km)], ang=[];
+  MV.forEach(function(m){var a=lerp(m.a0,m.a1,km), l=lerp(m.l0,m.l1,km)*z*(m.k==='fry'?g:1), x=O[0]+l*Math.cos(a), y=O[1]-l*Math.sin(a); ang.push(a);
     m.a.w=lerp(4,5,km); m.a.l.setAttribute('stroke-width',m.a.w); drawArrow(m.a,O[0],O[1],x,y,1);
     set(m.halo,{x1:O[0],y1:O[1],x2:x,y2:y}); op(m.halo,1-fade);
-    var w=lerp(m.w0,m.w1,km), h=w*m.ar_, c1=m.c1(m.w1*m.ar_), cx=lerp(m.c0[0],c1[0],km), cy=lerp(m.c0[1],c1[1],km);
+    var w=lerp(m.w0,m.w1,km), h=w*m.ar_, c1=m.up?[x,y-14-m.w1*m.ar_/2]:[x-15,y-26-m.w1*m.ar_/2], cx=lerp(m.c0[0],c1[0],km), cy=lerp(m.c0[1],c1[1],km);   /* pictures follow the arrow tips (above them) */
     set(m.img,{x:cx-w/2,y:cy-h/2,width:w,height:h}); set(m.fr,{x:cx-w/2,y:cy-h/2,width:w,height:h});});
   var r=lerp(170,110,km), p=[]; for(var i=0;i<=30;i++){var a=ang[1]+(ang[0]-ang[1])*i/30; p.push((O[0]+r*Math.cos(a)).toFixed(1)+','+(O[1]-r*Math.sin(a)).toFixed(1));}
   set(mvArc,{points:p.join(' ')});
   var am=(MV[0].a0+MV[1].a0)/2, l0=[X2(0)+232*Math.cos(am),LY2-232*Math.sin(am)+10];
-  set(mvLab,{x:lerp(l0[0],734,km),y:lerp(l0[1],708,km),'font-size':lerp(30,28,km)}); mvLab.textContent=km<.5?'≈ 37°':'37°';
+  set(mvLab,{x:lerp(l0[0],OC[0]+150,km),y:lerp(l0[1],OC[1]-24,km),'font-size':lerp(30,28,km)}); mvLab.textContent=km<.5?'≈ 37°':'37°';
 }
 /* hover preview (mouse only): a bigger copy just above the picture */
 var gPrev=el('g',{'pointer-events':'none'}), prevImg=el('image',{preserveAspectRatio:'xMidYMid slice'},gPrev), prevFrame=el('rect',{rx:6,fill:'none','stroke-width':4},gPrev);
@@ -530,7 +545,7 @@ function P3(p){
 }
 var O={x:0,y:0,z:0};
 var g3=el('g');
-var floor=[];
+var floor=[]; var plane=el('polygon',{'class':'f-plane'},g3);   /* very light fill of the royalty × age floor, under the grid */
 for(var i=0;i<=4;i++){floor.push({a:{x:i/4,y:0,z:0},b:{x:i/4,y:0,z:1},e:el('line',{'class':'s-grid','stroke-width':2},g3)});
                       floor.push({a:{x:0,y:0,z:i/4},b:{x:1,y:0,z:i/4},e:el('line',{'class':'s-grid','stroke-width':2},g3)});}
 var axG=mkArrow(C.mut,g3,3), axGd=mkArrow(C.mut,g3,3), axR=mkArrow(C.mut,g3,3), axA=mkArrow(C.mut,g3,3);
@@ -652,6 +667,12 @@ txt('Both ends use formulas the model learned during training (that’s the calc
 /* ------------------------------------------------------------------ */
 /* Summary (slide sum)                                                 */
 /* ------------------------------------------------------------------ */
+/* slide lo: the questions this deck answers (same look as the summary: numbered circles, bold lines) */
+var gLO=el('g');
+['What is vector space and why do we need it?','How to calculate similarity between words using numbers?','How is meaning converted to numbers?','How does moving through the space change a word’s meaning?','How are numbers turned back into words?'].forEach(function(q,i){var y=250+i*110;
+  el('circle',{cx:330,cy:y-10,r:28,'class':'f-link'},gLO); txt(String(i+1),{x:330,y:y,'text-anchor':'middle','font-size':28,'class':'f-bg b'},gLO);
+  txt(q,{x:385,y:y,'font-size':36,'class':'ink b'},gLO);});
+
 var gSum=el('g');
 var SUM=[
  ['An embedding is a list of numbers for a word\n(or anything: a meme, a picture).',''],
@@ -728,14 +749,14 @@ function render(P){
 
   /* words → number line (w1–w5) ------------------------------------ */
   op(gW,IN(P,S.w1,0,.2)*(1-IN(P,S.gps1,0,.25)));
-  var dr=IN(P,S.w4,.05,.35);                               /* w4: the axis line draws through the dots */
+  var dr=IN(P,S.w3,.05,.35);                               /* w3: the axis line draws through no and yes (0.8 s) */
   set(wLine,{x2:lerp(LX(-1)-60,LX(1)+60,dr)}); op(wLine,dr>.005?1:0);
-  wTicks.forEach(function(t){op(t.g,(t.v===-.5||t.v===.5)?IN(P,S.w5,.05,.25):(t.v===0?IN(P,S.w3,.05,.35):IN(P,S.w2,0,.3)));});
-  var sq1=IN(P,S.w4,.5,.85), sq2=IN(P,S.w5,.6,.85);     /* squish 1 (w4): no/maybe/yes · squish 2 (w5): mostly no/yes */
+  wTicks.forEach(function(t){op(t.g,(t.v===-.5||t.v===.5)?IN(P,S.w5,.05,.25):(t.v===0?IN(P,S.w4,.026,.18):IN(P,S.w2,0,.3)));});
+  var sq1=IN(P,S.w4,.72,.95), sq2=IN(P,S.w5,.6,.85);     /* w4: maybe 0.6 s, its arrow 0.8 s, 1 s pause, then squish 1: no/maybe/yes · squish 2 (w5): mostly no/yes */
   WW.forEach(function(w,i){
     var first=i<3, sq=first?sq1:sq2;
-    var a=i<2?IN(P,S.w1,.1,.5):(i===2?IN(P,S.w3,.05,.35):IN(P,S.w5,.05,.25));
-    var g=i<2?IN(P,S.w2,.3,.7):(i===2?IN(P,S.w3,.5,.9):IN(P,S.w5,.25,.45));
+    var a=i<2?IN(P,S.w1,.1,.5):(i===2?IN(P,S.w4,.026,.18):IN(P,S.w5,.05,.25));
+    var g=i<2?IN(P,S.w2,.3,.7):(i===2?IN(P,S.w4,.256,.46):IN(P,S.w5,.25,.45));
     set(w.t,{y:lerp(WY,NY-40,sq)}); op(w.t,a);
     var y0=lerp(WY+22,NY-26,sq);
     if(sq>.98||g<.01) op(w.a.g,0); else drawArrow(w.a,LX(w.x),y0,LX(w.x),NY-26,g);
@@ -811,14 +832,16 @@ function render(P){
   set(yAxis,{y1:LY2,y2:LY2-660*ya+10}); set(yLab,{y:LY2-660*ya-24}); op(yLab,ya);
   set(yHead,{d:'M'+X2(0)+' '+(LY2-660*ya-12)+' l-12 24 h24 z'}); op(yHead,ya);
   grid.forEach(function(g){op(g.g,ya);});
-  var cl=IN(P,S.m5,.15,.75)*(1-IN(P,S.m6,.15,.75)), hideA=IN(P,S.m5,0,.2);
+  var cl=IN(P,S.m5,.15,.75)*(1-IN(P,S.m6,.15,.75)), hideA=0;   /* session 6: m4 now comes after m5/m6, so nothing hides the arrows */
   op(xDim,cl);                                   /* x-axis fades while only intensity counts */
   op(clNote,IN(P,S.m5,.7,.9)*(1-IN(P,S.m6,0,.2)));
   M.forEach(function(m,i){
     var app=IN(P,S.m1,.3+i*.03,.5+i*.03), rise=IN(P,S.m3,.1+i*.02,.6+i*.02);
     var x=lerp(X2(m.x),X2(0)+(m.k==='michael'?-8:(m.k==='fry'?8:0)),cl), y=LY2-600*m.y*rise;
     set(m.from,{x1:X2(m.x),y1:y,x2:x,y2:y}); op(m.from,cl*.9);
-    var two=(m.k==='fry'||m.k==='nod'), keep=two?1:1-IN(P,S.cs1,0,.35);   /* cs1: the other memes fade out */
+    var two=(m.k==='fry'||m.k==='nod'), pk=PICK.indexOf(m.k)>=0, keep=(two||pk)?1:1-IN(P,S.cs1,0,.35);
+    if(pk){var on1=cur===S.cs1-1, gr=(on1||(P>AT(S.cs1)&&P<AT(S.cs2)))&&m.k!==SEL?'grayscale(1) opacity(.4)':''; m.tg.style.filter=gr; m.ar.g.style.filter=gr; m.tg.style.cursor=m.ar.g.style.cursor=on1?'pointer':'';
+      if(on1) m.tg.setAttribute('tabindex','0'); else m.tg.removeAttribute('tabindex');}   /* cs1: the other memes fade out */
     set(m.dotE,{cx:x,cy:y,r:11*(.3+.7*app)}); op(m.dotE,app*keep);
     /* picture: small & stacked on the line → full size at its 2D spot */
     var hs=SMALL*m.ar_; if(hs>SMALL){hs=SMALL;}
@@ -833,16 +856,16 @@ function render(P){
     if(m.lt){ set(m.lt,{x:cx,y:m.above?cy-h/2-12:cy+h/2+28}); op(m.lt,app*R(rise,.8,1)*(1-cl)*keep); }
     var aa=IN(P,S.m4,.1+i*.05,.4+i*.05);
     drawArrow(m.ar,X2(0),LY2,x,y,aa);
-    set(m.halo,{x1:X2(0),y1:LY2,x2:lerp(X2(0),x,aa),y2:lerp(LY2,y,aa)}); op(m.halo,aa>0.01?1-hideA:0);
-    if(aa>.01) op(m.ar.g,1-hideA);
+    set(m.halo,{x1:X2(0),y1:LY2,x2:lerp(X2(0),x,aa),y2:lerp(LY2,y,aa)}); op(m.halo,aa>0.01?keep:0);
+    if(aa>.01) op(m.ar.g,keep);   /* cs1: fry/nod keep their arrows, the others fade with their memes */
     var ca=two?IN(P,S.cs1,.3,.8):0;   /* cs1: their two arrows grow back from 0 */
     if(ca>.01 && hideA>.99 && !moving){ drawArrow(m.ar,X2(0),LY2,x,y,ca); op(m.ar.g,1); set(m.halo,{x1:X2(0),y1:LY2,x2:lerp(X2(0),x,ca),y2:lerp(LY2,y,ca)}); op(m.halo,1); }
     else if(moving && hideA>.99){ op(m.ar.g,0); op(m.halo,0); }
   });
   var mv=P>AT(S.cs1)+1e-6 && P<AT(S.pg1);   /* on the way from 18 to 19, on 19, and leaving it */
-  op(gCos1,IN(P,S.cs1,.5,.9)*(1-IN(P,S.cs2,0,.23))); op(gCos1a,mv?0:1);
-  op(gMv,mv?1-IN(P,S.pg1,0,.3):0); if(mv) drawMv(IN(P,S.cs2,.385,.615),IN(P,S.cs2,0,.23));
-  var c2=IN(P,S.cs2,.77,1)*(1-IN(P,S.pg1,0,.3)); op(gCos2,c2); if(c2>0) frC(['cos(37°) =',['adjacent','hypotenuse','f-link'],'=',['4','5','f-link'],'= 0.8']);
+  op(gCos1,IN(P,S.cs1,.5,.9)*(1-IN(P,S.cs2,0,.23))); op(gCos1a,mv||SEL!=='fry'?0:1); PICK.forEach(function(k){op(CMP[k],(k==='fry'||!mv)&&SEL===k?1:0);}); if(cur!==S.cs1-1) SEL='fry';
+  op(gMv,mv?1-IN(P,S.pg1,0,.3):0); var zz=1-.5*IN(P,S.cs3,.02,.32), gg=1+IN(P,S.cs3,.52,.85); if(mv) drawMv(IN(P,S.cs2,.385,.615),IN(P,S.cs2,0,.23),zz,gg);   /* cs3: zoom 1.5 s, pause 1 s, grow 1.65 s */
+  var c2=IN(P,S.cs2,.77,1)*(1-IN(P,S.pg1,0,.3)); op(gCos2,c2); var dn=gg>1.999; layTri(zz,gg,dn); if(c2>0) frC(['cos(37°) =',['adjacent','hypotenuse','f-link'],'=',dn?['8','10','f-link']:['4','5','f-link'],'= 0.8']);
   PG.vis(IN(P,S.pg1,0,.3)*(1-IN(P,S.g1,0,.3)));
   if(hoverM && memeSlide() && hoverM.tg.style.visibility!=='hidden'){
     var b=hoverM.box, pw=Math.max(260,b.w*1.6), ph=pw*hoverM.ar_, px_=Math.min(1600-pw-10,Math.max(10,b.x+b.w/2-pw/2)), py_=b.y-ph-14;
@@ -870,6 +893,7 @@ function render(P){
     set(tRoy,{x:re.x+6,y:re.y-35});   /* above the tip, clear of queen's ring and queen's own arrow */ op(tRoy,R(cam.wr,.7,1));
     var ae=P3({x:0,y:0,z:1.18}); drawArrow(axA,c0.x,c0.y,ae.x,ae.y,1); if(ag<0.01) op(axA.g,0);
     set(tAge,{x:ae.x-10,y:ae.y-14}); op(tAge,R(ag,.7,1));
+    (function(){var q=[{x:0,y:0,z:0},{x:1,y:0,z:0},{x:1,y:0,z:1},{x:0,y:0,z:1}].map(P3); set(plane,{points:q.map(function(p){return p.x+','+p.y;}).join(' ')}); op(plane,ag*R(cam.wr,.5,1));})();
     floor.forEach(function(f){var a=P3(f.a),b=P3(f.b); set(f.e,{x1:a.x,y1:a.y,x2:b.x,y2:b.y}); op(f.e,ag*R(cam.wr,.5,1));});
     var walk=IN(P,S.k1,0,.15)*(1-IN(P,S.rev,.6,.9));
     var dropF=1-.6*IN(P,S.k1,0,.3);           /* drop lines: clear on g4, then faded but visible */
@@ -970,20 +994,21 @@ function render(P){
   op(pNums,IN(P,S.pipe,.8,.95)); op(pForm,IN(P,S.pipe,.85,1));
 
   /* Summary ----------------------------------------------------------------- */
-  op(gSum,IN(P,S.sum,.2,.4));
+  op(gSum,IN(P,S.sum,.2,.4)); op(gLO,IN(P,S.lo,.1,.4)*(1-IN(P,S.w1,0,.2)));
   SUM.forEach(function(s,i){op(s.g,IN(P,S.sum,.3+i*.12,.5+i*.12));});
 
   /* replay button -------------------------------------------------------------- */
   op(gRst,(turnSlide(cur) && Math.abs(P-cur)<1e-6)?1:0);
   var bk=windSlide?'wind':(cur===S.win-1?'winds':'');
   if(bk && Math.abs(P-cur)<1e-6){ btnT.textContent='↻  Replay '+bk; gBtn.setAttribute('aria-label','Replay '+bk); op(gBtn,1); }
-  else if(cur===S.cs2-1 && Math.abs(P-cur)<1e-6){ btnT.textContent='↻  Replay'; gBtn.setAttribute('aria-label','Replay'); op(gBtn,1); }
+  else if((cur===S.cs2-1||cur===S.cs3-1) && Math.abs(P-cur)<1e-6){ btnT.textContent='↻  Replay'; gBtn.setAttribute('aria-label','Replay'); op(gBtn,1); }
   else op(gBtn,0);
 }
 function replay(){
   if(cur===S.k2-1||cur===S.k3-1||cur===S.k5-1) fx.wind=performance.now();
   if(cur===S.win-1) fx.winds=performance.now();
-  if(cur===S.cs2-1 && !reduce) anim={from:AT(S.cs1),to:AT(S.cs2),start:performance.now(),dur:DUR[cur]*1000,lin:true};   /* slide 19: the move again */
+  if(cur===S.cs2-1 && !reduce) anim={from:AT(S.cs1),to:AT(S.cs2),start:performance.now(),dur:DUR[cur]*1000,lin:true};   /* slide 20: the move again */
+  if(cur===S.cs3-1 && !reduce) anim={from:AT(S.cs2),to:AT(S.cs3),start:performance.now(),dur:DUR[cur]*1000,lin:true};   /* slide 21: zoom + doubling again */
 }
 gRst.addEventListener('click',function(e){e.stopPropagation(); viewHome(450);});
 gRst.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault(); e.stopPropagation(); viewHome(450);}});
@@ -1031,7 +1056,10 @@ var lb=document.getElementById('lb'), lbImg=document.getElementById('lbImg'), lb
 M.forEach(function(m){
   m.tg.addEventListener('mouseenter',function(){if(memeSlide()){hoverM=m; lastP=-1;}});
   m.tg.addEventListener('mouseleave',function(){if(hoverM===m){hoverM=null; lastP=-1;}});
-  m.tg.addEventListener('click',function(e){if(!memeSlide()) return; e.stopPropagation(); openLB(m);});
+  m.tg.addEventListener('click',function(e){if(cur===S.cs1-1&&PICK.indexOf(m.k)>=0){e.stopPropagation(); SEL=m.k; lastP=-1; return;} if(!memeSlide()) return; e.stopPropagation(); openLB(m);});
+  if(PICK.indexOf(m.k)>=0){ m.ar.g.addEventListener('click',function(e){if(cur===S.cs1-1){e.stopPropagation(); SEL=m.k; lastP=-1;}});
+    m.tg.classList.add('pick'); m.tg.setAttribute('role','button'); m.tg.setAttribute('aria-label','Compare '+m.name+' with Jeremiah Johnson Nod');
+    m.tg.addEventListener('keydown',function(e){if(cur===S.cs1-1&&(e.key==='Enter'||e.key===' ')){e.preventDefault(); e.stopPropagation(); SEL=m.k; lastP=-1;}}); }
 });
 function openLB(m){
   var b=BIG[m.k]||THUMBS[m.k];
@@ -1437,7 +1465,7 @@ document.addEventListener('keydown',function(e){
   var k=e.key;
   if(!lb.hidden){ e.preventDefault(); closeLB(); return; }   /* any key closes the enlarged picture first */
   if((e.target===gBtn||e.target===gRst) && (k==='Enter'||k===' ')) return;
-  if(e.target&&e.target.closest&&e.target.closest('.grip,.rbtn')&&(k==='Enter'||k===' '||k==='ArrowUp'||k==='ArrowDown')) return;
+  if(e.target&&e.target.closest&&e.target.closest('.grip,.rbtn,.pick')&&(k==='Enter'||k===' '||k==='ArrowUp'||k==='ArrowDown')) return;
   if(k==='ArrowRight'||k==='PageDown'||k===' '||(k==='Enter'&&e.target===document.body)){e.preventDefault(); go(cur+1);}
   else if(k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){e.preventDefault(); go(cur-1);}
   else if(k==='Home'){go(0);} else if(k==='End'){go(N-1);}
